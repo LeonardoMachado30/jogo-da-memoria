@@ -1,6 +1,6 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { useAudio } from 'src/composable/useAudio';
-import { useUserStore } from 'stores/user-store';
+import { useUserStore } from 'src/stores/user-store';
 import timer from 'src/composable/useTimer';
 
 interface Fruit {
@@ -32,30 +32,32 @@ export const useGameStore = defineStore('game', {
     currentScore: 0,
     pulseTimerList: ['01:30', '01:00', '00:30'],
     attemptCounter: 0,
-    currentLevel: 1,
+    currentLevel: 2,
     gameStartTime: null,
     gameEndTime: null,
     initialFlip: false,
     lockBoard: false,
     baseFruits: [
-      { src: 'fruits/melancia.png', alt: 'melancia' },
-      { src: 'fruits/morango.png', alt: 'morango' },
-      { src: 'fruits/maca.png', alt: 'maça' },
-      { src: 'fruits/laranja.png', alt: 'laranja' },
-      { src: 'fruits/banana.png', alt: 'banana' },
-      { src: 'fruits/uva.png', alt: 'uva' },
-      { src: 'fruits/cereja.png', alt: 'cereja' },
       { src: 'fruits/abacaxi.png', alt: 'abacaxi' },
+      { src: 'fruits/banana.png', alt: 'banana' },
+      { src: 'fruits/banana.png', alt: 'banana' },
+      { src: 'fruits/beterraba.png', alt: 'beterraba' },
+      { src: 'fruits/carambola.png', alt: 'carambola' },
+      { src: 'fruits/cereja.png', alt: 'cereja' },
       { src: 'fruits/kiwi.png', alt: 'kiwi' },
-      { src: 'fruits/limao.png', alt: 'limão' },
-      { src: 'fruits/goiaba.png', alt: 'goiaba' },
+      { src: 'fruits/laranja.png', alt: 'laranja' },
+      { src: 'fruits/limao.png', alt: 'limao' },
       { src: 'fruits/manga.png', alt: 'manga' },
+      { src: 'fruits/melancia.png', alt: 'melancia' },
+      { src: 'fruits/mixirica.png', alt: 'mixirica' },
+      { src: 'fruits/morango.png', alt: 'morgango' },
       { src: 'fruits/pera.png', alt: 'pera' },
-      { src: 'fruits/figo.png', alt: 'figo' },
-      { src: 'fruits/ameixa.png', alt: 'ameixa' },
-      { src: 'fruits/tamarindo.png', alt: 'tamarindo' },
-      { src: 'fruits/framboesa.png', alt: 'framboesa' },
-      { src: 'fruits/maracuja.png', alt: 'maracujá' },
+      { src: 'fruits/pessego.png', alt: 'pessego' },
+      { src: 'fruits/pitaia.png', alt: 'pitaia' },
+      { src: 'fruits/tamarindo.png', alt: 'pitaia' },
+      { src: 'fruits/uva.png', alt: 'uva' },
+      { src: 'fruits/uva_roxa.png', alt: 'uva roxa' },
+      { src: 'fruits/uva_verde.png', alt: 'uva verde' },
     ],
     levelsConfig: [
       { level: 1, gridSize: 4, pairs: 8 },
@@ -101,7 +103,7 @@ export const useGameStore = defineStore('game', {
           timer().mounted();
           this.lockBoard = false;
         }, 5000);
-      }, 2000);
+      }, 600);
     },
     incremetAttemptCounter() {
       this.attemptCounter += 1;
@@ -129,11 +131,11 @@ export const useGameStore = defineStore('game', {
     },
     resetLevel() {
       this.currentScore = 0;
+      this.attemptCounter = 0;
       this.resetScore();
       this.startGameEffects();
     },
     async endGame() {
-      console.log('start end game');
       const useUser = useUserStore();
       this.gameEndTime = Date.now();
       console.log(useUser.getUser?.uid);

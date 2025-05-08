@@ -4,7 +4,7 @@ import { useUserStore } from 'stores/user-store';
 import { storeToRefs } from 'pinia';
 import { useRoute } from 'vue-router';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import ModalSettings from 'components/molecules/ModalSettings.vue';
+import ModalSettings from 'components/organisms/ModalSettings.vue';
 
 const route = useRoute();
 const useUser = useUserStore();
