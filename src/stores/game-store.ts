@@ -32,7 +32,7 @@ export const useGameStore = defineStore('game', {
     currentScore: 0,
     pulseTimerList: ['01:30', '01:00', '00:30'],
     attemptCounter: 0,
-    currentLevel: 2,
+    currentLevel: 1,
     gameStartTime: null,
     gameEndTime: null,
     initialFlip: false,
