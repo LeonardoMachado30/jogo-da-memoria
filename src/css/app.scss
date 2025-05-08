@@ -1,5 +1,10 @@
 // app global css in SCSS form
 @import 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=trophy';
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Sansation:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Tagesschrift&display=swap');
+
+body {
+  font-family: 'sansation-bold', system-ui, sans-serif;
+}
 
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0,
