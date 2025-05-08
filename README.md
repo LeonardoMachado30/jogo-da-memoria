@@ -24,20 +24,21 @@ Bem-vindo ao **Jogo da Memória**, uma aplicação web desenvolvida com Vue 3 e 
 ```bash
 src/
 ├── assets/
+├── boot/
 ├── components/
+│ ├── __tests__/
 │ ├── atoms/
 │ ├── molecules/
 │ └── organisms/
 ├── composable/
+├── css/
+├── layouts/
 ├── pages/
-├── services/ # Integração com Firebase
+├── router/
 ├── stores/ # Pinia
 ├── App.vue
-├── main.ts
-cypress/
-│ └── component/
-│ └── molecules/
-│ └── CardIndex.cy.ts
+test/
+│ └── cypress/
 ```
 
 > 🔬 **Atomic Design**: Os componentes são organizados como átomos, moléculas e organismos, facilitando a reutilização e
@@ -107,4 +108,10 @@ npm run format
 
 ```bash
 quasar build
+```
+
+### Testing
+
+```bash
+npm run test:component
 ```
