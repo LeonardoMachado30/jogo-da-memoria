@@ -5,6 +5,7 @@
   "productName": "jogo-da-memoria",
   "author": "flmpl <flmp.leonardo@gmail.com>",
   "type": "module",
+  "homepage": "https://leonardomachado30.github.io/jogo-da-memoria/",
   "private": true,
   "scripts": {
     "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
