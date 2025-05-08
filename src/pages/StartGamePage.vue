@@ -125,7 +125,7 @@ onMounted(async () => {
         </template>
       </div>
 
-      <div class="flex justify-between text-cyan-9 q-pt-md">
+      <div class="flex justify-between text-principal q-pt-md">
         <p>Nivel: {{ currentLevel }}</p>
         <p>Pontuação: {{ currentScore }}</p>
         <p>Tentativas: {{ attemptCounter }}</p>
