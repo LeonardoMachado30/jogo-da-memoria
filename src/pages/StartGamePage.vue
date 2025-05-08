@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useGameStore } from 'stores/game-store';
-import { useUserStore } from 'stores/user-store';
 import { formattedTime, formattedTimeStart, isTimeOver } from 'src/composable/useTimer';
 import CardIndex from 'components/molecules/CardIndex.vue';
 import ModalFailedGame from 'components/organisms/ModalFailedGame.vue';
@@ -13,8 +11,6 @@ interface Card {
   src: string;
   alt: string;
 }
-
-const router = useRouter();
 
 const useGame = useGameStore();
 const {
@@ -29,8 +25,6 @@ const {
   flippedStatus,
   cardRefs,
 } = storeToRefs(useGame);
-
-const useUser = useUserStore();
 
 const showModalEnd = ref<boolean>(false);
 const isOneMinuteAlert = ref(false);
@@ -95,12 +89,8 @@ watch(isTimeOver, (val) => {
   }
 });
 
-onMounted(async () => {
-  if (useUser.getUser) {
-    useGame.startGameEffects();
-  } else {
-    await router.push('/');
-  }
+onMounted(() => {
+  useGame.startGameEffects();
 });
 </script>
 

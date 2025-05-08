@@ -26,7 +26,7 @@ const loginWithGoogle = async () => {
 
 <template>
   <q-btn
-    class="google-login-btn text-black text-bold"
+    class="google-login-btn text-black text-bold q-my-sm"
     icon="img:icons/google.svg"
     @click="loginWithGoogle"
     :disabled="loading"

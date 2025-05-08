@@ -136,15 +136,17 @@ export const useGameStore = defineStore('game', {
 
     async endGame() {
       const useUser = useUserStore();
-      this.gameEndTime = Date.now();
+      if (useUser.getUser) {
+        this.gameEndTime = Date.now();
 
-      if (useUser.getUser?.uid) {
-        await useUser.updateRanking(useUser.getUser.uid, {
-          score: this.currentScore,
-          gameTotal: this.gameDuration,
-          attemptCounter: this.attemptCounter,
-          ...useUser.getUser,
-        });
+        if (useUser.getUser?.uid) {
+          await useUser.updateRanking(useUser.getUser.uid, {
+            score: this.currentScore,
+            gameTotal: this.gameDuration,
+            attemptCounter: this.attemptCounter,
+            ...useUser.getUser,
+          });
+        }
       }
     },
 

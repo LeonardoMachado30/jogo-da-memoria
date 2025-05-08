@@ -32,13 +32,12 @@ function onStartGame() {
     <h1 class="text-principal text-bold m-none text-center text-h2">Jogo da memória</h1>
 
     <div v-if="useUser.getUser == null" class="flex column gap-4">
-      <q-btn label="Jogar sem conta" to="/partida" color="cyan-6" rounded />
       <BtnLoginGoogle />
     </div>
 
-    <section v-else style="max-width: 200px">
+    <section style="max-width: 200px">
       <q-btn
-        label="Iniciar jogo"
+        :label="useUser.getUser ? 'Iniciar jogo' : 'Jogar sem conta'"
         rounded
         icon="play_arrow"
         class="bg-cyan-6 text-white q-mb-sm full-width"
@@ -61,17 +60,19 @@ function onStartGame() {
         @click="modalSettings = !modalSettings"
         @mouseenter="audioMouseHover()"
       />
-      <q-btn
-        rounded
-        class="bg-cyan-6 text-white q-mb-sm full-width"
-        @click="modalRanking = !modalRanking"
-        @mouseenter="audioMouseHover()"
-      >
-        <div class="flex items-center" style="gap: 10px">
-          <q-icon name="leaderboard" size="1.5rem"></q-icon>
-          <p class="no-margin">classificação</p>
-        </div>
-      </q-btn>
+      <template v-if="useUser.getUser !== null">
+        <q-btn
+          rounded
+          class="bg-cyan-6 text-white q-mb-sm full-width"
+          @click="modalRanking = !modalRanking"
+          @mouseenter="audioMouseHover()"
+        >
+          <div class="flex items-center" style="gap: 10px">
+            <q-icon name="leaderboard" size="1.5rem"></q-icon>
+            <p class="no-margin">classificação</p>
+          </div>
+        </q-btn>
+      </template>
 
       <q-btn
         icon="copyright"
