@@ -4,7 +4,7 @@ import {
   get,
   query,
   orderByChild,
-  limitToFirst,
+  limitToLast,
   set,
   update,
 } from 'firebase/database';
@@ -83,17 +83,19 @@ export const useUserStore = defineStore('user', {
 
     async getTop10Ranking(): Promise<Ranking[]> {
       try {
-        const rankingQuery = query(rankingRef, orderByChild('score'), limitToFirst(10));
+        const rankingQuery = query(rankingRef, orderByChild('score'), limitToLast(10));
         const snapshot = await get(rankingQuery);
 
         if (snapshot.exists()) {
-          const rankingData = snapshot.val() as Ranking;
-          return Object.entries(rankingData).map(([id, rank]) => {
-            return {
+          const rankingData = snapshot.val() as Record<string, Ranking>;
+
+          // Transforma em array e ordena manualmente do maior para o menor
+          return Object.entries(rankingData)
+            .map(([id, rank]) => ({
               ...rank,
               id,
-            };
-          });
+            }))
+            .sort((a, b) => (b.score ?? 0) - (a.score ?? 0)); // Score descendente
         } else {
           return [];
         }

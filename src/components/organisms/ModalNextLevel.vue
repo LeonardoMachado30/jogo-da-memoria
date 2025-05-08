@@ -1,14 +1,32 @@
 <script setup lang="ts">
 import { useGameStore } from 'src/stores/game-store';
 import { storeToRefs } from 'pinia';
+import { useAudio } from 'src/composable/useAudio';
+import { watch } from 'vue';
 
 const showModalEnd = defineModel('showModal', { default: false });
 
+const { audioCongratulation } = useAudio();
 const useGame = useGameStore();
 const { currentScore, currentLevel, attemptCounter, gameEndTime, gameStartTime } =
   storeToRefs(useGame);
 
-const emit = defineEmits(['onNextLevel', 'onResetLevel']);
+function resetLeve() {
+  audioCongratulation().pause();
+  useGame.resetLevel();
+}
+
+function nextLevel() {
+  audioCongratulation().pause();
+  currentLevel.value = currentLevel.value + 1;
+  useGame.resetLevel()
+}
+
+watch(showModalEnd, (newValue) => {
+  if (newValue) {
+    audioCongratulation();
+  }
+});
 </script>
 
 <template>
@@ -46,15 +64,10 @@ const emit = defineEmits(['onNextLevel', 'onResetLevel']);
           label="Jogar novamente"
           color="amber-7"
           text-color="black"
-          @click="emit('onResetLevel')"
+          @click="resetLeve"
           v-close-popup
         ></q-btn>
-        <q-btn
-          label="Proximo Nivel"
-          color="cyan-7"
-          @click="emit('onNextLevel')"
-          v-close-popup
-        ></q-btn>
+        <q-btn label="Proximo Nivel" color="cyan-7" @click="nextLevel" v-close-popup></q-btn>
       </q-card-actions>
     </q-card>
   </q-dialog>

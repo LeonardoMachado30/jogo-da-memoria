@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, reactive, watch, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useGameStore } from 'stores/game-store';
 import { useUserStore } from 'stores/user-store';
-import { formattedTime, formattedTimeStart, resetTimer, isTimeOver } from 'src/composable/useTimer';
-import { useAudio } from 'src/composable/useAudio';
+import { formattedTime, formattedTimeStart, isTimeOver } from 'src/composable/useTimer';
 import CardIndex from 'components/molecules/CardIndex.vue';
 import ModalFailedGame from 'components/organisms/ModalFailedGame.vue';
 import ModalNextLevel from 'components/organisms/ModalNextLevel.vue';
@@ -15,20 +14,11 @@ interface Card {
   alt: string;
 }
 
-interface FlippedCard {
-  index: number;
-  alt: string;
-}
-
-interface CardRef {
-  flipDown: () => void;
-}
-
 const router = useRouter();
 
-const gameStore = useGameStore();
-const { initialFlip } = storeToRefs(gameStore);
+const useGame = useGameStore();
 const {
+  initialFlip,
   currentScore,
   gridSize,
   levelCardSet,
@@ -36,15 +26,11 @@ const {
   totalCards,
   lockBoard,
   attemptCounter,
-} = storeToRefs(gameStore);
+  flippedStatus,
+  cardRefs,
+} = storeToRefs(useGame);
 
 const useUser = useUserStore();
-
-const { audioCongratulation, audioPair } = useAudio();
-
-const flippedCards = ref<FlippedCard[]>([]);
-const flippedStatus = reactive<boolean[]>(Array(totalCards.value).fill(false));
-const cardRefs = ref<(CardRef | null)[]>([]);
 
 const showModalEnd = ref<boolean>(false);
 const isOneMinuteAlert = ref(false);
@@ -63,39 +49,8 @@ function shuffleArray<T>(array: T[]): T[] {
 
 const fruits = ref<Card[]>(shuffleArray([...levelCardSet.value]));
 
-function onFlip({ index, alt }: FlippedCard): void {
-  if (lockBoard.value) return;
-
-  flippedCards.value.push({ index, alt });
-
-  if (flippedCards.value.length === 2) {
-    attemptCounter.value = attemptCounter.value + 1;
-    lockBoard.value = true;
-    const [first, second] = flippedCards.value;
-
-    if (first && second) {
-      if (first.alt === second.alt) {
-        flippedStatus[first.index] = true;
-        flippedStatus[second.index] = true;
-        flippedCards.value = [];
-        lockBoard.value = false;
-        gameStore.incrementScore(formattedTime.value);
-        resetTimer();
-        audioPair();
-      } else {
-        setTimeout(() => {
-          cardRefs.value[first.index]?.flipDown();
-          cardRefs.value[second.index]?.flipDown();
-          flippedCards.value = [];
-          lockBoard.value = false;
-        }, 1000);
-      }
-    }
-  }
-}
-
 watch(formattedTime, (newTime) => {
-  gameStore.pulseTimerList.forEach((time) => {
+  useGame.pulseTimerList.forEach((time) => {
     if (newTime === time) {
       isOneMinuteAlert.value = true;
       setTimeout(() => {
@@ -107,16 +62,22 @@ watch(formattedTime, (newTime) => {
 
 watch(levelCardSet, (newCards) => {
   fruits.value = shuffleArray([...newCards]);
-  flippedStatus.splice(0, flippedStatus.length, ...Array(newCards.length).fill(false));
+  flippedStatus.value.splice(0, flippedStatus.value.length, ...Array(newCards.length).fill(false));
 });
 
-watch(flippedStatus, async () => {
-  if (flippedStatus.every((val) => val)) {
-    showModalEnd.value = true;
-    audioCongratulation();
-    await gameStore.endGame();
-  }
-});
+watch(
+  () => flippedStatus.value,
+  async (newValue) => {
+    console.log(newValue);
+    console.log(newValue.every((val) => val));
+    if (newValue.every((val) => val)) {
+      showModalEnd.value = true;
+
+      await useGame.endGame();
+    }
+  },
+  { deep: true },
+);
 
 watch(initialFlip, (val) => {
   if (val) {
@@ -138,7 +99,7 @@ watch(isTimeOver, (val) => {
 
 onMounted(async () => {
   if (useUser.getUser) {
-    gameStore.startGameEffects();
+    useGame.startGameEffects();
   } else {
     await router.push('/');
   }
@@ -158,7 +119,7 @@ onMounted(async () => {
             :card="fruits[index] ?? { src: '', alt: '' }"
             :flipped-externally="initialFlip || flippedStatus[index]"
             :locked="lockBoard"
-            @flip="onFlip"
+            @flip="useGame.onFlip"
             ref="cardRefs"
           />
         </template>
@@ -176,11 +137,7 @@ onMounted(async () => {
       </div>
     </section>
 
-    <ModalNextLevel
-      v-model:showModal="showModalEnd"
-      @on-next-level="currentLevel = currentLevel + 1"
-      @on-reset-level="gameStore.resetLevel"
-    />
+    <ModalNextLevel v-model:showModal="showModalEnd" />
 
     <ModalFailedGame v-model="modalFailedGame" />
   </q-page>
@@ -195,7 +152,6 @@ onMounted(async () => {
 
 .--grid {
   display: grid;
-  //grid-template-columns: repeat(4, 1fr);
   grid-gap: 8px;
 }
 

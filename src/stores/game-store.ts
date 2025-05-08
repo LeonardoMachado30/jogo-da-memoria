@@ -1,7 +1,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { useAudio } from 'src/composable/useAudio';
 import { useUserStore } from 'src/stores/user-store';
-import timer from 'src/composable/useTimer';
+import timer, { formattedTime, resetTimer, resetTimerStart } from 'src/composable/useTimer';
 
 interface Fruit {
   src: string;
@@ -14,6 +14,10 @@ interface LevelConfig {
   pairs: number;
 }
 
+interface CardRef {
+  flipDown: () => void;
+}
+
 interface State {
   currentScore: number;
   pulseTimerList: string[];
@@ -24,7 +28,15 @@ interface State {
   levelsConfig: LevelConfig[];
   gameStartTime: number | null;
   gameEndTime: number | null;
+  flippedStatus: boolean[];
   lockBoard: boolean;
+  flippedCards: FlippedCard[];
+  cardRefs: (CardRef | null)[];
+}
+
+export interface FlippedCard {
+  index: number;
+  alt: string;
 }
 
 export const useGameStore = defineStore('game', {
@@ -37,9 +49,11 @@ export const useGameStore = defineStore('game', {
     gameEndTime: null,
     initialFlip: false,
     lockBoard: false,
+    flippedStatus: [],
+    flippedCards: [],
+    cardRefs: [],
     baseFruits: [
       { src: 'fruits/abacaxi.png', alt: 'abacaxi' },
-      { src: 'fruits/banana.png', alt: 'banana' },
       { src: 'fruits/banana.png', alt: 'banana' },
       { src: 'fruits/beterraba.png', alt: 'beterraba' },
       { src: 'fruits/carambola.png', alt: 'carambola' },
@@ -50,11 +64,11 @@ export const useGameStore = defineStore('game', {
       { src: 'fruits/manga.png', alt: 'manga' },
       { src: 'fruits/melancia.png', alt: 'melancia' },
       { src: 'fruits/mixirica.png', alt: 'mixirica' },
-      { src: 'fruits/morango.png', alt: 'morgango' },
+      { src: 'fruits/morango.png', alt: 'morango' },
       { src: 'fruits/pera.png', alt: 'pera' },
       { src: 'fruits/pessego.png', alt: 'pessego' },
       { src: 'fruits/pitaia.png', alt: 'pitaia' },
-      { src: 'fruits/tamarindo.png', alt: 'pitaia' },
+      { src: 'fruits/tamarindo.png', alt: 'tamarindo' },
       { src: 'fruits/uva.png', alt: 'uva' },
       { src: 'fruits/uva_roxa.png', alt: 'uva roxa' },
       { src: 'fruits/uva_verde.png', alt: 'uva verde' },
@@ -94,7 +108,10 @@ export const useGameStore = defineStore('game', {
 
   actions: {
     startGameEffects() {
-      const { audioCard } = useAudio();
+      this.setFlippedStatus();
+      const { audioCard, playMusic } = useAudio();
+      playMusic();
+
       this.initialFlip = false;
       this.lockBoard = true;
       setTimeout(() => {
@@ -111,13 +128,12 @@ export const useGameStore = defineStore('game', {
         }, 5000);
       }, 600);
     },
-    incremetAttemptCounter() {
-      this.attemptCounter += 1;
-    },
+
     incrementScore(formattedTime: string) {
       const points = this.calculateScore(formattedTime);
       this.currentScore += points;
     },
+
     calculateScore(formattedTime: string): number {
       if (formattedTime >= '00:50') return 5;
       if (formattedTime >= '00:40') return 4;
@@ -126,25 +142,31 @@ export const useGameStore = defineStore('game', {
       if (formattedTime >= '00:05') return 1;
       return 0;
     },
-    resetScore() {
-      this.currentScore = 0;
-    },
+
     nextLevel() {
       const maxLevel = this.levelsConfig.length;
       if (this.currentLevel < maxLevel) {
         this.currentLevel++;
       }
     },
+
     resetLevel() {
       this.currentScore = 0;
       this.attemptCounter = 0;
-      this.resetScore();
+      this.currentScore = 0;
+      resetTimer();
+      resetTimerStart();
+      this.setFlippedStatus();
       this.startGameEffects();
     },
+
+    setFlippedStatus() {
+      this.flippedStatus = Array(this.totalCards).fill(false);
+    },
+
     async endGame() {
       const useUser = useUserStore();
       this.gameEndTime = Date.now();
-      console.log(useUser.getUser?.uid);
 
       if (useUser.getUser?.uid) {
         await useUser.updateRanking(useUser.getUser.uid, {
@@ -153,6 +175,37 @@ export const useGameStore = defineStore('game', {
           attemptCounter: this.attemptCounter,
           ...useUser.getUser,
         });
+      }
+    },
+
+    onFlip({ index, alt }: FlippedCard): void {
+      if (this.lockBoard) return;
+
+      this.flippedCards.push({ index, alt });
+
+      if (this.flippedCards.length === 2) {
+        this.attemptCounter = this.attemptCounter + 1;
+        this.lockBoard = true;
+        const [first, second] = this.flippedCards;
+
+        if (first && second) {
+          if (first.alt === second.alt) {
+            this.flippedStatus[first.index] = true;
+            this.flippedStatus[second.index] = true;
+            this.flippedCards = [];
+            this.lockBoard = false;
+            this.incrementScore(formattedTime.value);
+            resetTimer();
+            useAudio().audioPair();
+          } else {
+            setTimeout(() => {
+              this.cardRefs[first.index]?.flipDown();
+              this.cardRefs[second.index]?.flipDown();
+              this.flippedCards = [];
+              this.lockBoard = false;
+            }, 1000);
+          }
+        }
       }
     },
   },
