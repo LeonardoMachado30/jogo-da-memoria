@@ -29,7 +29,7 @@ watch(modelValue, () => {
   <ModalDefault v-model="modelValue" title="Classificação" icon="leaderboard">
     <ol class="list-numeric">
       <li
-        class="text-principal q-py-sm q-px-lg flex items-center justify-between rounded-borders shadow-1"
+        class="text-principal q-py-sm q-px-lg flex items-center justify-between rounded-borders shadow-1 gap-4"
         v-for="(rank, index) in rankingRaw"
         :key="index"
       >
