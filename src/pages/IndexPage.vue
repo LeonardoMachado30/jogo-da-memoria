@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useUserStore } from 'stores/user-store';
-import BtnLoginGoogle from 'components/atoms/BtnLoginGoogle.vue';
-import ModalSettings from 'components/molecules/ModalSettings.vue';
 import { useAudio } from 'src/composable/useAudio';
-import ModalRanking from 'components/molecules/ModalRanking.vue';
+import BtnLoginGoogle from 'components/atoms/BtnLoginGoogle.vue';
+import ModalSettings from 'components/organisms/ModalSettings.vue';
+import ModalRanking from 'components/organisms/ModalRanking.vue';
 
 const { audioMouseHover } = useAudio();
 const useUser = useUserStore();

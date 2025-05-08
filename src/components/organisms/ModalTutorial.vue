@@ -3,20 +3,10 @@ import { ref } from 'vue';
 
 const modelValue = defineModel({ default: false });
 
-const props = defineProps<{ showBtn?: boolean }>();
-
 const slide = ref('1');
 </script>
 
 <template>
-  <q-btn
-    v-if="props.showBtn"
-    icon="school"
-    round
-    color="amber-7"
-    @click="modelValue = !modelValue"
-  ></q-btn>
-
   <q-dialog v-model="modelValue" backdrop-filter="blur(6px)">
     <q-card class="full-width" style="max-width: 600px">
       <q-card-section class="bg-cyan-7 text-white flex items-center" style="gap: 6px">

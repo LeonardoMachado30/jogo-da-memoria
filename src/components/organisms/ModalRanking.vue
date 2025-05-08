@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import type { Ranking} from 'src/stores/user-store';
+import type { Ranking } from 'src/stores/user-store';
 import { useUserStore } from 'src/stores/user-store';
 
 const modelValue = defineModel({ default: false });

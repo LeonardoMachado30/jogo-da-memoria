@@ -60,10 +60,11 @@ defineExpose({
         <img
           :src="props.card.src"
           :alt="props.card.alt"
-          class="card-img"
+          class="card-img full-width full-height"
           width="80"
           height="80"
           loading="lazy"
+          style="max-width: 80px; max-height: 80px"
         />
       </div>
     </div>

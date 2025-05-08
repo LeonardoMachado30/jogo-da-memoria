@@ -1,19 +1,14 @@
 <script setup lang="ts">
 import { ref, reactive, watch, onMounted } from 'vue';
-import {
-  formattedTime,
-  formattedTimeStart,
-  resetTimer,
-  isTimeOver,
-} from 'src/composable/useTimer';
-import { useGameStore } from 'stores/game-store';
+import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
+import { useGameStore } from 'stores/game-store';
+import { useUserStore } from 'stores/user-store';
+import { formattedTime, formattedTimeStart, resetTimer, isTimeOver } from 'src/composable/useTimer';
 import { useAudio } from 'src/composable/useAudio';
 import CardIndex from 'components/molecules/CardIndex.vue';
-import ModalFailedGame from 'components/molecules/ModalFailedGame.vue';
+import ModalFailedGame from 'components/organisms/ModalFailedGame.vue';
 import ModalNextLevel from 'components/organisms/ModalNextLevel.vue';
-import { useUserStore } from 'stores/user-store';
-import { useRouter } from 'vue-router';
 
 interface Card {
   src: string;
@@ -153,18 +148,10 @@ onMounted(async () => {
 <template>
   <q-page class="--container">
     <section>
-      <div class="flex justify-between text-cyan-9">
-        <p>Nivel: {{ currentLevel }}</p>
-        <p>Pontuação: {{ currentScore }}</p>
-        <p>Tentativas: {{ attemptCounter }}</p>
-        <transition name="time-pulse" mode="out-in">
-          <p :key="initialFlip ? 'pulse-' + pulseKey : formattedTime" class="text-bold">
-            {{ initialFlip ? formattedTimeStart : formattedTime }}
-          </p>
-        </transition>
-      </div>
-
-      <div class="--grid" :style="{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }">
+      <div
+        class="--grid"
+        :style="{ gridTemplateColumns: `repeat(${gridSize}, minmax(20px, 1fr))` }"
+      >
         <template v-for="(total, index) in totalCards" :key="index">
           <CardIndex
             :index="index"
@@ -175,6 +162,17 @@ onMounted(async () => {
             ref="cardRefs"
           />
         </template>
+      </div>
+
+      <div class="flex justify-between text-cyan-9 q-pt-md">
+        <p>Nivel: {{ currentLevel }}</p>
+        <p>Pontuação: {{ currentScore }}</p>
+        <p>Tentativas: {{ attemptCounter }}</p>
+        <transition name="time-pulse" mode="out-in">
+          <p :key="initialFlip ? 'pulse-' + pulseKey : formattedTime" class="text-bold">
+            {{ initialFlip ? formattedTimeStart : formattedTime }}
+          </p>
+        </transition>
       </div>
     </section>
 
@@ -192,13 +190,13 @@ onMounted(async () => {
 .--container {
   max-width: 720px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 40px 1rem 0 1rem;
 }
 
 .--grid {
   display: grid;
   //grid-template-columns: repeat(4, 1fr);
-  grid-gap: 10px;
+  grid-gap: 8px;
 }
 
 .time-pulse-enter-active,
