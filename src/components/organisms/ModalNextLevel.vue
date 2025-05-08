@@ -14,13 +14,13 @@ const { currentScore, currentLevel, attemptCounter, gameEndTime, gameStartTime }
 
 function resetLeve() {
   audioCongratulation().pause();
-  useGame.resetLevel();
+  useGame.startGameEffects();
 }
 
 function nextLevel() {
   audioCongratulation().pause();
   currentLevel.value = currentLevel.value + 1;
-  useGame.resetLevel();
+  useGame.startGameEffects();
 }
 
 watch(modelValue, (newValue) => {
@@ -67,7 +67,13 @@ watch(modelValue, (newValue) => {
         @click="resetLeve"
         v-close-popup
       ></q-btn>
-      <q-btn label="Proximo Nivel" color="cyan-6" @click="nextLevel" v-close-popup></q-btn>
+      <q-btn
+        v-if="currentLevel < 3"
+        label="Proximo Nivel"
+        color="cyan-6"
+        @click="nextLevel"
+        v-close-popup
+      ></q-btn>
     </template>
   </ModalDefault>
 </template>

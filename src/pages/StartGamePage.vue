@@ -68,8 +68,6 @@ watch(levelCardSet, (newCards) => {
 watch(
   () => flippedStatus.value,
   async (newValue) => {
-    console.log(newValue);
-    console.log(newValue.every((val) => val));
     if (newValue.every((val) => val)) {
       showModalEnd.value = true;
 

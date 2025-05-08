@@ -7,6 +7,7 @@ import ModalSettings from 'components/organisms/ModalSettings.vue';
 import ModalRanking from 'components/organisms/ModalRanking.vue';
 import ModalTutorial from 'components/organisms/ModalTutorial.vue';
 import ModalCredits from 'components/organisms/ModalCredits.vue';
+import ModalChooseLevel from 'components/organisms/ModalChooseLevel.vue';
 
 const { audioMouseHover, audioClick } = useAudio();
 const useUser = useUserStore();
@@ -15,6 +16,12 @@ const modalSettings = ref(false);
 const modalRanking = ref(false);
 const modalSchool = ref(false);
 const modalCredits = ref(false);
+const modalChooseLevel = ref(false);
+
+function onStartGame() {
+  modalChooseLevel.value = !modalChooseLevel.value;
+  audioClick();
+}
 </script>
 
 <template>
@@ -23,12 +30,6 @@ const modalCredits = ref(false);
 
     <template v-if="useUser.getUser == null">
       <div class="flex column">
-        <q-btn
-          label="Iniciar Jogo Anonimamente"
-          class="bg-cyan-6 text-white q-mb-sm"
-          to="/partida"
-          @mouseenter="audioMouseHover()"
-        />
         <BtnLoginGoogle />
       </div>
     </template>
@@ -39,8 +40,7 @@ const modalCredits = ref(false);
         rounded
         icon="play_arrow"
         class="bg-cyan-6 text-white q-mb-sm full-width"
-        to="/partida"
-        @click="audioClick"
+        @click="onStartGame"
         @mouseenter="audioMouseHover()"
       />
       <q-btn
@@ -90,6 +90,8 @@ const modalCredits = ref(false);
     <ModalTutorial v-model="modalSchool" />
 
     <ModalCredits v-model="modalCredits" />
+
+    <ModalChooseLevel v-model="modalChooseLevel" />
   </q-page>
 </template>
 

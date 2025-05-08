@@ -72,12 +72,16 @@ export const useGameStore = defineStore('game', {
       { src: 'fruits/uva.png', alt: 'uva' },
       { src: 'fruits/uva_roxa.png', alt: 'uva roxa' },
       { src: 'fruits/uva_verde.png', alt: 'uva verde' },
+      { src: 'fruits/jabuticaba.png', alt: 'jabuticaba' },
+      { src: 'fruits/maca_verde.png', alt: 'maca_verde' },
+      { src: 'fruits/melancia_cortada.png', alt: 'melancia cortada' },
+      { src: 'fruits/goiaba.png', alt: 'goiaba cortada' },
+      { src: 'fruits/lichia.png', alt: 'lichia' },
     ],
     levelsConfig: [
       { level: 1, gridSize: 4, pairs: 8 },
       { level: 2, gridSize: 6, pairs: 18 },
       { level: 3, gridSize: 8, pairs: 24 },
-      { level: 4, gridSize: 8, pairs: 32 },
     ],
   }),
 
@@ -108,9 +112,10 @@ export const useGameStore = defineStore('game', {
 
   actions: {
     startGameEffects() {
-      this.setFlippedStatus();
       const { audioCard, playMusic } = useAudio();
       playMusic();
+
+      this.resetLevel();
 
       this.initialFlip = false;
       this.lockBoard = true;
@@ -129,6 +134,20 @@ export const useGameStore = defineStore('game', {
       }, 600);
     },
 
+    async endGame() {
+      const useUser = useUserStore();
+      this.gameEndTime = Date.now();
+
+      if (useUser.getUser?.uid) {
+        await useUser.updateRanking(useUser.getUser.uid, {
+          score: this.currentScore,
+          gameTotal: this.gameDuration,
+          attemptCounter: this.attemptCounter,
+          ...useUser.getUser,
+        });
+      }
+    },
+
     incrementScore(formattedTime: string) {
       const points = this.calculateScore(formattedTime);
       this.currentScore += points;
@@ -143,13 +162,6 @@ export const useGameStore = defineStore('game', {
       return 0;
     },
 
-    nextLevel() {
-      const maxLevel = this.levelsConfig.length;
-      if (this.currentLevel < maxLevel) {
-        this.currentLevel++;
-      }
-    },
-
     resetLevel() {
       this.currentScore = 0;
       this.attemptCounter = 0;
@@ -157,25 +169,10 @@ export const useGameStore = defineStore('game', {
       resetTimer();
       resetTimerStart();
       this.setFlippedStatus();
-      this.startGameEffects();
     },
 
     setFlippedStatus() {
       this.flippedStatus = Array(this.totalCards).fill(false);
-    },
-
-    async endGame() {
-      const useUser = useUserStore();
-      this.gameEndTime = Date.now();
-
-      if (useUser.getUser?.uid) {
-        await useUser.updateRanking(useUser.getUser.uid, {
-          score: this.currentScore,
-          gameTotal: this.gameDuration,
-          attemptCounter: this.attemptCounter,
-          ...useUser.getUser,
-        });
-      }
     },
 
     onFlip({ index, alt }: FlippedCard): void {

@@ -10,7 +10,7 @@ const useGame = useGameStore();
 
 function resetLeve() {
   audioCongratulation().pause();
-  useGame.resetLevel();
+  useGame.startGameEffects();
 }
 
 watch(
@@ -29,8 +29,6 @@ watch(
 <template>
   <ModalDefault
     v-model="modelValue"
-    title=""
-    icon=""
     class-body="flex column items-center text-center q-px-lg"
     class-actions="flex justify-center q-pa-lg"
   >

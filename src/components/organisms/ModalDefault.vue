@@ -5,8 +5,8 @@ import { useAudio } from 'src/composable/useAudio';
 const modelValue = defineModel({ default: false });
 
 const props = defineProps<{
-  icon: string;
-  title: string;
+  icon?: string;
+  title?: string;
   classBody?: string;
   classActions?: string;
 }>();
@@ -23,8 +23,12 @@ watch(modelValue, () => {
 <template>
   <q-dialog v-model="modelValue" backdrop-filter="blur(6px)">
     <q-card>
-      <q-card-section class="bg-cyan-6 text-white flex items-center gap-4">
+      <q-card-section
+        v-if="props.icon || props.title"
+        class="bg-cyan-6 text-white flex items-center gap-4"
+      >
         <q-icon
+          v-if="props.icon"
           :name="props.icon"
           size="1.4rem"
           class="no-margin q-pt-sm material-icons-outlined"
