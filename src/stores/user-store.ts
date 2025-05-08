@@ -10,6 +10,7 @@ import {
 } from 'firebase/database';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { db } from 'src/boot/firebase';
+import { useRouter } from 'vue-router';
 
 interface User {
   nome: string | null;
@@ -137,13 +138,14 @@ export const useUserStore = defineStore('user', {
     },
 
     async logout() {
+      const router = useRouter();
       try {
         const auth = getAuth();
         await signOut(auth);
 
         this.user = null;
         localStorage.removeItem('user');
-        location.href = '/';
+        await router.push('/');
       } catch (error) {
         console.error('Erro ao fazer logout:', error);
       }
