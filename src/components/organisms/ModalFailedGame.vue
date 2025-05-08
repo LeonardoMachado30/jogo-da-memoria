@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { useAudio } from 'src/composable/useAudio';
 import { watch } from 'vue';
+import ModalDefault from 'components/organisms/ModalDefault.vue';
+import { useGameStore } from 'stores/game-store';
 
 const modelValue = defineModel({ default: false });
-const { audioGameOver } = useAudio();
-const emit = defineEmits(['onResetLevel']);
+const { audioGameOver, audioCongratulation } = useAudio();
+const useGame = useGameStore();
+
+function resetLeve() {
+  audioCongratulation().pause();
+  useGame.resetLevel();
+}
 
 watch(
   modelValue,
@@ -20,41 +27,34 @@ watch(
 </script>
 
 <template>
-  <q-dialog
+  <ModalDefault
     v-model="modelValue"
-    persistent
-    backdrop-filter="blur(8px)"
-    transition-show="slide-up"
-    transition-hide="slide-down"
-    transition-duration="600"
+    title=""
+    icon=""
+    class-body="flex column items-center text-center q-px-lg"
+    class-actions="flex justify-center q-pa-lg"
   >
-    <q-card class="full-width q-py-md" style="max-width: 620px">
-      <q-card-section class="text-center">
-        <q-img
-          srcset="failedGame.gif"
-          alt="Happy Birthday"
-          width="140"
-          height="140"
-          class="full-width full-height"
-          style="max-width: 140px; max-height: 140px"
-        />
-        <p class="text-h4 text-bold text-red-8">Você falhou!</p>
-        <p class="text-body2 text-bold text-cyan-8">
-          Mas não desanime, você pode tentar novamente!
-        </p>
-      </q-card-section>
-      <q-card-actions class="flex justify-center items-center">
-        <q-btn label="menu principal" color="cyan-7" to="/" v-close-popup></q-btn>
+    <template #default>
+      <q-img
+        srcset="failedGame.gif"
+        alt="Happy Birthday"
+        width="140"
+        height="140"
+        class="full-width full-height"
+        style="max-width: 140px; max-height: 140px"
+      />
+      <p class="text-h4 text-bold text-red-8">Você falhou!</p>
+      <p class="text-body2 text-bold text-principal">
+        Mas não desanime, você pode tentar novamente!
+      </p>
+    </template>
 
-        <q-btn
-          label="jogar novamente"
-          color="amber-7"
-          @click="emit('onResetLevel')"
-          v-close-popup
-        ></q-btn>
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
+    <template #actions>
+      <q-btn label="menu principal" color="cyan-6" to="/" v-close-popup></q-btn>
+
+      <q-btn label="jogar novamente" color="amber-7" @click="resetLeve" v-close-popup></q-btn>
+    </template>
+  </ModalDefault>
 </template>
 
 <style scoped></style>

@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useAudio } from 'src/composable/useAudio';
-import { watch } from 'vue';
+import { Dark } from 'quasar';
+import ModalDefault from 'components/organisms/ModalDefault.vue';
 
-const openDialog = defineModel({ default: false });
+const modelValue = defineModel({ default: false });
 
-const { pauseMusic, playMusic, isPlaying, audioClick } = useAudio();
+const { pauseMusic, playMusic, isPlaying } = useAudio();
 
 const changeVolume = () => {
   if (isPlaying.value) {
@@ -14,30 +15,31 @@ const changeVolume = () => {
   }
 };
 
-watch(openDialog, () => {
-  if (openDialog.value) {
-    audioClick();
-  }
-});
+const toggleDark = () => {
+  Dark.toggle();
+};
 </script>
 
 <template>
-  <q-dialog v-model="openDialog">
-    <q-card class="full-width" style="max-width: 400px">
-      <q-card-section class="bg-cyan-7 text-white flex items-center" style="gap: 6px">
-        <q-icon name="settings" size="1rem" class="no-margin"></q-icon>
-        <p class="text-bold text-h6 no-margin">Configurações</p>
-      </q-card-section>
-      <q-card-section class="q-gutter-md">
-        <q-btn
-          @click="changeVolume"
-          :icon="isPlaying ? 'volume_up' : 'volume_down'"
-          round
-          color="amber-7"
-        />
-      </q-card-section>
-    </q-card>
-  </q-dialog>
+  <ModalDefault
+    v-model="modelValue"
+    title="Configuraçõoes"
+    icon="settings"
+    classBody="flex justify-center gap-4"
+  >
+    <q-btn
+      @click="changeVolume"
+      :icon="isPlaying ? 'volume_up' : 'volume_down'"
+      round
+      color="amber-6"
+    />
+    <q-btn
+      :icon="Dark.isActive ? 'dark_mode' : 'light_mode'"
+      round
+      color="amber-6"
+      @click="toggleDark"
+    />
+  </ModalDefault>
 </template>
 
 <style scoped></style>
