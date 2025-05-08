@@ -8,6 +8,9 @@ const isPlaying = ref(!!isPauseMusicStorage);
 const volume = ref(0.5);
 audioBackground.volume = volume.value;
 
+// Armazena os áudios para controle individual (pausar, continuar)
+const audioMap = new Map<string, HTMLAudioElement>();
+
 function playMusic() {
   audioBackground
     .play()
@@ -27,45 +30,52 @@ function pauseMusic() {
 }
 
 function toggleMusic() {
-  if (isPlaying.value) {
-    pauseMusic();
-  } else {
-    playMusic();
-  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  isPlaying.value ? pauseMusic() : playMusic();
 }
 
 function setVolume(newVolume: number) {
   volume.value = newVolume;
   audioBackground.volume = newVolume;
-}
 
-function audioCreate(audioPath: string, isPlay = true) {
-  const audio = new Audio(audioPath);
-  if (isPlay) {
-    audio
-      .play()
-      .then(() => {
-        isPlaying.value = true;
-      })
-      .catch((err) => {
-        console.warn('Audio play blocked:', err);
-      });
-  } else {
-    audio.pause();
+  for (const audio of audioMap.values()) {
+    audio.volume = newVolume;
   }
 }
+
+function audioCreate(audioPath: string, autoPlay = true): HTMLAudioElement {
+  let audio = audioMap.get(audioPath);
+
+  if (!audio) {
+    audio = new Audio(audioPath);
+    audio.volume = volume.value;
+    audioMap.set(audioPath, audio);
+  }
+
+  if (autoPlay) {
+    audio.currentTime = 0;
+    audio.play().catch((err) => {
+      console.warn('Audio play blocked:', err);
+    });
+  }
+
+  return audio;
+}
+
+// 🎵 Funções para efeitos sonoros:
 
 function audioCard() {
   audioCreate('audio/card-sounds-35956.mp3');
 }
 
 function audioCongratulation() {
-  audioCreate('audio/crowd-cheer-ii-6263.mp3');
+  const audio = audioCreate('audio/crowd-cheer-ii-6263.mp3');
   pauseMusic();
 
   setTimeout(() => {
     playMusic();
-  }, 2000);
+  }, 3000);
+  return audio;
 }
 
 function audioPair() {
@@ -83,12 +93,9 @@ function audioClick() {
 function audioGameOver() {
   audioCreate('audio/253886__themusicalnomad__negative_beeps.wav');
   pauseMusic();
-
-  // setTimeout(() => {
-  //   playMusic();
-  // }, 2000);
 }
 
+// Exporta o composable
 export function useAudio() {
   return {
     isPlaying,
@@ -103,5 +110,6 @@ export function useAudio() {
     audioMouseHover,
     audioClick,
     audioGameOver,
+    audioMap, // caso queira acessar diretamente algum áudio no seu componente
   };
 }
