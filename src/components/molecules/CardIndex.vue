@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch, defineExpose } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { useBackgroundMusic } from 'src/composable/useBackgroundMusic';
 
 interface Card {
   src: string;
@@ -17,6 +18,8 @@ const emit = defineEmits<{
   (e: 'flip', payload: { index: number; alt: string }): void;
 }>();
 
+const { audioCard } = useBackgroundMusic();
+
 const flipped = ref<boolean>(false);
 
 watch(
@@ -24,6 +27,7 @@ watch(
   (newVal) => {
     flipped.value = newVal;
   },
+  { immediate: true },
 );
 
 const flipClass = computed<string>(() => (flipped.value ? 'flip-up' : 'flip-down'));
@@ -31,11 +35,13 @@ const flipClass = computed<string>(() => (flipped.value ? 'flip-up' : 'flip-down
 function toggleFlip(): void {
   if (props.locked || flipped.value) return;
   flipped.value = true;
+  audioCard();
   emit('flip', { index: props.index, alt: props.card.alt });
 }
 
 defineExpose({
   flipDown: (): void => {
+    audioCard();
     flipped.value = false;
   },
 });
@@ -46,7 +52,7 @@ defineExpose({
     class="card-container"
     :class="flipClass"
     @click="toggleFlip"
-    style="min-height: 80px; min-width: 80px"
+    style="min-height: 60px; min-width: 60px"
   >
     <div class="card-inner">
       <div class="card-face card-back"></div>

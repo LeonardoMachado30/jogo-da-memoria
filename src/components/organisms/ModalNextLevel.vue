@@ -1,18 +1,13 @@
 <script setup lang="ts">
+import { useGameStore } from 'src/stores/game-store';
+import { storeToRefs } from 'pinia';
+
 const showModalEnd = defineModel('showModal', { default: false });
-const currentLevel = defineModel('currentLevel', { default: 1 });
+const useGame = useGameStore();
+const { currentScore, currentLevel, attemptCounter, gameEndTime, gameStartTime } =
+  storeToRefs(useGame);
 
 const emit = defineEmits(['onNextLevel', 'onResetLevel']);
-
-function reset() {
-  showModalEnd.value = false;
-  emit('onResetLevel');
-}
-
-function nextLevel() {
-  showModalEnd.value = false;
-  emit('onNextLevel');
-}
 </script>
 
 <template>
@@ -38,10 +33,27 @@ function nextLevel() {
         <p class="text-h5 text-bold text-cyan-8 q-px-lg">
           Você conquistou o nível {{ currentLevel }}
         </p>
+        <div class="flex justify-center" style="gap: 10px">
+          <p>Pontuação: {{ currentScore }}</p>
+          <p>Tentivas: {{ attemptCounter }}</p>
+          <p>inicio: {{ gameStartTime }}</p>
+          <p>fim: {{ gameEndTime }}</p>
+        </div>
       </q-card-section>
       <q-card-actions class="flex justify-center items-center">
-        <q-btn label="Jogar novamente" color="amber-7" text-color="black" @click="reset"></q-btn>
-        <q-btn label="Proximo Nivel" color="cyan-7" @click="nextLevel"></q-btn>
+        <q-btn
+          label="Jogar novamente"
+          color="amber-7"
+          text-color="black"
+          @click="emit('onResetLevel')"
+          v-close-popup
+        ></q-btn>
+        <q-btn
+          label="Proximo Nivel"
+          color="cyan-7"
+          @click="emit('onNextLevel')"
+          v-close-popup
+        ></q-btn>
       </q-card-actions>
     </q-card>
   </q-dialog>
