@@ -1,6 +1,11 @@
 // app global css in SCSS form
-@import 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=trophy';
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=license');
+
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Sansation:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Tagesschrift&display=swap');
+
+* {
+  transition: color 800ms ease, background-color 600ms ease;
+}
 
 body {
   font-family: 'sansation-bold', system-ui, sans-serif;
@@ -10,7 +15,27 @@ body {
   font-variation-settings: 'FILL' 0,
   'wght' 400,
   'GRAD' 0,
-  'opsz' 24;
+  'opsz' 24
+}
+
+.text-principal {
+  color: var(--principal-text-color);
+}
+
+.background-primary {
+  background-color: var(--principal-background-color);
+}
+
+body.body--light {
+  transition: all 600ms ease-in-out;
+  --principal-text-color: #00bcd4; /* cyan-6 */
+  --principal-background-color: #ffecb3;
+}
+
+body.body--dark {
+  transition: all 600ms ease-in-out;
+  --principal-text-color: #ffc107; /* cyan-6 */
+  --principal-background-color: #1a237e;
 }
 
 .q-btn {
@@ -23,4 +48,8 @@ body {
 
 .mx-auto {
   margin: 0 auto;
+}
+
+.gap-4 {
+  gap: 10px;
 }
