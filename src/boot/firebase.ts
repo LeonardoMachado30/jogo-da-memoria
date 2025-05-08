@@ -5,12 +5,13 @@ import { VueFire, VueFireAuth } from 'vuefire';
 import { getDatabase } from 'firebase/database';
 
 const firebaseApp = initializeApp({
-  apiKey: 'AIzaSyDvaHnSU29r9zc29QkuMsG5A-s2dqPbsIg',
-  authDomain: 'jogo-da-memoria-278bd.firebaseapp.com',
-  projectId: 'jogo-da-memoria-278bd',
-  storageBucket: 'jogo-da-memoria-278bd.appspot.com',
-  messagingSenderId: '1063068944629',
-  appId: '1:1063068944629:web:005f10ea128e68d9245dbc',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 });
 
 const db = getDatabase(firebaseApp);
