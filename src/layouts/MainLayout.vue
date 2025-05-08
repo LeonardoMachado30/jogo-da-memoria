@@ -58,7 +58,8 @@ onUnmounted(() => {
           />
           <q-btn icon="school" round color="cyan-6" @click="showModalSchool = !showModalSchool" />
         </div>
-        <div v-if="getUser" class="flex items-center self-end" style="gap: 10px">
+
+        <div v-if="getUser" class="flex items-center self-end gap-4" style="gap: 10px">
           <q-img
             v-if="getUser.photoURL"
             :srcset="getUser?.photoURL"

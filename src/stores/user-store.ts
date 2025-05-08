@@ -143,7 +143,7 @@ export const useUserStore = defineStore('user', {
 
         this.user = null;
         localStorage.removeItem('user');
-        location.href = 'q';
+        location.href = '/';
       } catch (error) {
         console.error('Erro ao fazer logout:', error);
       }

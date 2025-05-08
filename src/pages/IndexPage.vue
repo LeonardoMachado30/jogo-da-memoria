@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, defineAsyncComponent } from 'vue';
 import { useUserStore } from 'stores/user-store';
 import { useAudio } from 'src/composable/useAudio';
-import BtnLoginGoogle from 'components/atoms/BtnLoginGoogle.vue';
-import ModalSettings from 'components/organisms/ModalSettings.vue';
-import ModalRanking from 'components/organisms/ModalRanking.vue';
-import ModalTutorial from 'components/organisms/ModalTutorial.vue';
-import ModalCredits from 'components/organisms/ModalCredits.vue';
-import ModalChooseLevel from 'components/organisms/ModalChooseLevel.vue';
+
+const BtnLoginGoogle = defineAsyncComponent(() => import('components/atoms/BtnLoginGoogle.vue'));
+const ModalSettings = defineAsyncComponent(() => import('components/organisms/ModalSettings.vue'));
+const ModalRanking = defineAsyncComponent(() => import('components/organisms/ModalRanking.vue'));
+const ModalTutorial = defineAsyncComponent(() => import('components/organisms/ModalTutorial.vue'));
+const ModalCredits = defineAsyncComponent(() => import('components/organisms/ModalCredits.vue'));
+const ModalChooseLevel = defineAsyncComponent(
+  () => import('components/organisms/ModalChooseLevel.vue'),
+);
 
 const { audioMouseHover, audioClick } = useAudio();
 const useUser = useUserStore();
@@ -26,13 +29,12 @@ function onStartGame() {
 
 <template>
   <q-page class="flex column items-center justify-center">
-    <h1 class="text-principal text-bold m-none text-center">Jogo da memória</h1>
+    <h1 class="text-principal text-bold m-none text-center text-h2">Jogo da memória</h1>
 
-    <template v-if="useUser.getUser == null">
-      <div class="flex column">
-        <BtnLoginGoogle />
-      </div>
-    </template>
+    <div v-if="useUser.getUser == null" class="flex column gap-4">
+      <q-btn label="Jogar sem conta" to="/partida" color="cyan-6" rounded />
+      <BtnLoginGoogle />
+    </div>
 
     <section v-else style="max-width: 200px">
       <q-btn
@@ -83,15 +85,15 @@ function onStartGame() {
 
     <p>Created by: Flávio Leonardo</p>
 
-    <ModalSettings v-model="modalSettings" />
+    <ModalSettings v-if="modalSettings" v-model="modalSettings" />
 
-    <ModalRanking v-model="modalRanking" />
+    <ModalRanking v-if="modalRanking" v-model="modalRanking" />
 
-    <ModalTutorial v-model="modalSchool" />
+    <ModalTutorial v-if="modalSchool" v-model="modalSchool" />
 
-    <ModalCredits v-model="modalCredits" />
+    <ModalCredits v-if="modalCredits" v-model="modalCredits" />
 
-    <ModalChooseLevel v-model="modalChooseLevel" />
+    <ModalChooseLevel v-if="modalChooseLevel" v-model="modalChooseLevel" />
   </q-page>
 </template>
 
