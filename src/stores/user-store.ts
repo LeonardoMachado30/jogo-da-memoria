@@ -158,8 +158,17 @@ export const useUserStore = defineStore('user', {
     async updateRanking(uid: string, newData: Partial<Ranking>) {
       try {
         const rankingRef = dbRef(db, `ranking/${uid}`);
-        await update(rankingRef, newData);
-        console.log('alterado');
+
+        const snapshot = await get(rankingRef);
+        const ranking = snapshot.exists() ? snapshot.val() : null;
+
+        const rankingConcat = {
+          attemptCounter: ranking.attemptCounter + newData.attemptCounter,
+          gameTotal: ranking.gameTotal + newData.gameTotal,
+          score: ranking.score + newData.score,
+        };
+
+        await update(rankingRef, rankingConcat);
       } catch (error) {
         console.error('Erro ao atualizar ranking:', error);
       }

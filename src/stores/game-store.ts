@@ -84,6 +84,12 @@ export const useGameStore = defineStore('game', {
       const selected = state.baseFruits.slice(0, pairs);
       return [...selected, ...selected];
     },
+    gameDuration(state): number | null {
+      if (state.gameStartTime !== null && state.gameEndTime !== null) {
+        return state.gameEndTime - state.gameStartTime;
+      }
+      return null;
+    },
   },
 
   actions: {
@@ -143,7 +149,7 @@ export const useGameStore = defineStore('game', {
       if (useUser.getUser?.uid) {
         await useUser.updateRanking(useUser.getUser.uid, {
           score: this.currentScore,
-          gameTotal: this.attemptCounter,
+          gameTotal: this.gameDuration,
           attemptCounter: this.attemptCounter,
           ...useUser.getUser,
         });
