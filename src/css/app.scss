@@ -8,6 +8,14 @@
   'opsz' 24;
 }
 
+.q-btn {
+  transition: transform 0.2s ease !important;
+}
+
+.q-btn:hover {
+  transform: scale(1.2) !important;
+}
+
 .mx-auto {
   margin: 0 auto;
 }
