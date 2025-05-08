@@ -31,7 +31,7 @@ watch(
     <q-card class="full-width q-py-md" style="max-width: 620px">
       <q-card-section class="text-center">
         <q-img
-          srcset="/failedGame.gif"
+          srcset="failedGame.gif"
           alt="Happy Birthday"
           width="140"
           height="140"

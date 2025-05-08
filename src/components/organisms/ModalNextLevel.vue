@@ -23,7 +23,7 @@ const emit = defineEmits(['onNextLevel', 'onResetLevel']);
     <q-card class="full-width q-py-md" style="max-width: 620px">
       <q-card-section class="text-center">
         <q-img
-          srcset="/happy_birthday.gif"
+          srcset="happy_birthday.gif"
           alt="Happy Birthday"
           width="360"
           height="360"
