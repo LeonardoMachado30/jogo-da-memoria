@@ -1,3 +1,42 @@
+<script setup lang="ts">
+import { useAudio } from 'src/composable/useAudio';
+import { useUserStore } from 'stores/user-store';
+import { storeToRefs } from 'pinia';
+import { useRoute } from 'vue-router';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import ModalSettings from 'components/molecules/ModalSettings.vue';
+
+const route = useRoute();
+const useUser = useUserStore();
+const { getUser } = storeToRefs(useUser);
+
+const { playMusic, pauseMusic } = useAudio();
+
+const showModalSettings = ref(false);
+
+const isHome = computed(() => route.fullPath === '/');
+
+function clickPage() {
+  const isPauseMusic = localStorage.getItem('isPauseMusic');
+  if (!isPauseMusic) {
+    playMusic();
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', clickPage, { once: true });
+
+  window.addEventListener('focus', playMusic);
+
+  window.addEventListener('blur', pauseMusic);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('focus', playMusic);
+  window.removeEventListener('blur', pauseMusic);
+});
+</script>
+
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-header class="bg-transparent text-cyan-9 q-py-md">
@@ -30,6 +69,7 @@
             class="q-btn--rounded"
           />
           <p class="no-margin">{{ getUser.nome }}</p>
+          <q-btn icon="logout" round color="amber-7" @click="useUser.logout" />
         </div>
       </div>
     </q-header>
@@ -41,44 +81,3 @@
     <ModalSettings v-model="showModalSettings" />
   </q-layout>
 </template>
-
-<script setup lang="ts">
-import { useBackgroundMusic } from 'src/composable/useBackgroundMusic';
-import { useUserStore } from 'stores/user-store';
-import { storeToRefs } from 'pinia';
-import { useRoute } from 'vue-router';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
-import ModalSettings from 'components/molecules/ModalSettings.vue';
-
-const route = useRoute();
-const useUser = useUserStore();
-const { getUser } = storeToRefs(useUser);
-
-const { playMusic, pauseMusic } = useBackgroundMusic();
-
-const showModalSettings = ref(false);
-
-const isHome = computed(() => route.fullPath === '/');
-
-function clickPage() {
-  const isPauseMusic = localStorage.getItem('isPauseMusic');
-  if (!isPauseMusic) {
-    playMusic();
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', clickPage, { once: true });
-
-  window.addEventListener('focus', playMusic);
-
-  window.addEventListener('blur', pauseMusic);
-
-  useUser.loadUserFromStorage();
-});
-
-onUnmounted(() => {
-  window.removeEventListener('focus', playMusic);
-  window.removeEventListener('blur', pauseMusic);
-});
-</script>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { useBackgroundMusic } from 'src/composable/useBackgroundMusic';
+import { useAudio } from 'src/composable/useAudio';
 
 interface Card {
   src: string;
@@ -18,7 +18,7 @@ const emit = defineEmits<{
   (e: 'flip', payload: { index: number; alt: string }): void;
 }>();
 
-const { audioCard } = useBackgroundMusic();
+const { audioCard } = useAudio();
 
 const flipped = ref<boolean>(false);
 

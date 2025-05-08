@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useUserStore } from 'src/stores/user-store';
+import { useAudio } from 'src/composable/useAudio';
 
 const useUser = useUserStore();
+const { audioMouseHover } = useAudio();
 
 const loading = ref(false);
 
@@ -24,6 +26,7 @@ const loginWithGoogle = async () => {
     icon="img:icons/google.svg"
     @click="loginWithGoogle"
     :disabled="loading"
+    @mouseenter="audioMouseHover()"
   >
     <span>{{ loading ? 'Entrando...' : 'Entrar com Google' }}</span>
   </q-btn>
@@ -50,10 +53,5 @@ const loginWithGoogle = async () => {
 .google-login-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.icon {
-  width: 20px;
-  height: 20px;
 }
 </style>

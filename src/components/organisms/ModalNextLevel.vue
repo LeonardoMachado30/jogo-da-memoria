@@ -3,6 +3,7 @@ import { useGameStore } from 'src/stores/game-store';
 import { storeToRefs } from 'pinia';
 
 const showModalEnd = defineModel('showModal', { default: false });
+
 const useGame = useGameStore();
 const { currentScore, currentLevel, attemptCounter, gameEndTime, gameStartTime } =
   storeToRefs(useGame);

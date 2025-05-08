@@ -9,7 +9,6 @@ const useUser = useUserStore();
 const rankingRaw = ref<Ranking[]>([]);
 
 onMounted(async () => {
-  // Espera a função assíncrona para buscar os top 10 rankings
   rankingRaw.value = await useUser.getTop10Ranking();
 });
 </script>

@@ -1,7 +1,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import timer from 'src/composable/stopwatch';
-import { useBackgroundMusic } from 'src/composable/useBackgroundMusic';
+import { useAudio } from 'src/composable/useAudio';
 import { useUserStore } from 'stores/user-store';
+import timer from 'src/composable/useTimer';
 
 interface Fruit {
   src: string;
@@ -86,7 +86,7 @@ export const useGameStore = defineStore('game', {
 
   actions: {
     startGameEffects() {
-      const { audioCard } = useBackgroundMusic();
+      const { audioCard } = useAudio();
       this.initialFlip = false;
       this.lockBoard = true;
       setTimeout(() => {

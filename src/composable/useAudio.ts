@@ -89,7 +89,7 @@ function audioGameOver() {
   // }, 2000);
 }
 
-export function useBackgroundMusic() {
+export function useAudio() {
   return {
     isPlaying,
     volume,

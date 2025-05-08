@@ -6,10 +6,9 @@ import {
   orderByChild,
   limitToFirst,
   set,
-  remove,
   update,
 } from 'firebase/database';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { db } from 'src/boot/firebase';
 
 interface User {
@@ -27,7 +26,6 @@ export interface Ranking extends User {
   attemptCounter: number;
   gameTotal: number;
   score: number;
-  // id: string;
 }
 
 const usersRef = (uid: string) => dbRef(db, `users/${uid}`);
@@ -60,25 +58,6 @@ export const useUserStore = defineStore('user', {
     },
   },
   actions: {
-    async loadUserFromStorage() {
-      const raw = localStorage.getItem('user');
-      if (!raw) {
-        this.user = null;
-        return;
-      }
-
-      try {
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object') {
-          this.user = parsed;
-          await this.addUser(parsed.uid, parsed);
-        }
-      } catch (e) {
-        console.error('Erro ao fazer parse do usuário:', e);
-        this.user = null;
-      }
-    },
-
     setUser(user: User) {
       localStorage.setItem('user', JSON.stringify(user));
       this.user = user;
@@ -102,24 +81,6 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    async getUserFirebase(uid: string): Promise<User | null> {
-      try {
-        const snapshot = await get(usersRef(uid));
-        return snapshot.exists() ? snapshot.val() : null;
-      } catch (error) {
-        console.error('Erro ao obter usuário:', error);
-        return null;
-      }
-    },
-
-    async deleteUser(uid: string) {
-      try {
-        await remove(usersRef(uid));
-      } catch (error) {
-        console.error('Erro ao deletar usuário:', error);
-      }
-    },
-
     async getTop10Ranking(): Promise<Ranking[]> {
       try {
         const rankingQuery = query(rankingRef, orderByChild('score'), limitToFirst(10));
@@ -134,7 +95,6 @@ export const useUserStore = defineStore('user', {
             };
           });
         } else {
-          console.log('Nenhum dado encontrado.');
           return [];
         }
       } catch (error) {
@@ -171,6 +131,19 @@ export const useUserStore = defineStore('user', {
         this.setUser(user);
       } catch (error) {
         console.error('Erro no login com Google:', error);
+      }
+    },
+
+    async logout() {
+      try {
+        const auth = getAuth();
+        await signOut(auth);
+
+        this.user = null;
+        localStorage.removeItem('user');
+        location.href = 'q';
+      } catch (error) {
+        console.error('Erro ao fazer logout:', error);
       }
     },
 

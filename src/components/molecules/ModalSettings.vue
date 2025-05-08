@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useBackgroundMusic } from 'src/composable/useBackgroundMusic';
+import { useAudio } from 'src/composable/useAudio';
 import { watch } from 'vue';
 
 const openDialog = defineModel({ default: false });
 
-const { pauseMusic, playMusic, isPlaying, audioClick } = useBackgroundMusic();
+const { pauseMusic, playMusic, isPlaying, audioClick } = useAudio();
 
 const changeVolume = () => {
   if (isPlaying.value) {

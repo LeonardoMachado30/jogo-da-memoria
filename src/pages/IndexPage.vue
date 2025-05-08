@@ -3,10 +3,10 @@ import { ref } from 'vue';
 import { useUserStore } from 'stores/user-store';
 import BtnLoginGoogle from 'components/atoms/BtnLoginGoogle.vue';
 import ModalSettings from 'components/molecules/ModalSettings.vue';
-import { useBackgroundMusic } from 'src/composable/useBackgroundMusic';
+import { useAudio } from 'src/composable/useAudio';
 import ModalRanking from 'components/molecules/ModalRanking.vue';
 
-const { audioMouseHover } = useBackgroundMusic();
+const { audioMouseHover } = useAudio();
 const useUser = useUserStore();
 const modalSettings = ref(false);
 const modalRanking = ref(false);
@@ -22,6 +22,7 @@ const modalRanking = ref(false);
           label="Iniciar Jogo Anonimamente"
           class="bg-cyan-6 text-white q-mb-sm"
           to="/partida"
+          @mouseenter="audioMouseHover()"
         />
         <BtnLoginGoogle />
       </div>
@@ -63,5 +64,4 @@ const modalRanking = ref(false);
   </q-page>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

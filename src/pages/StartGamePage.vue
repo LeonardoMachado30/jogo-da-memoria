@@ -5,10 +5,10 @@ import {
   formattedTimeStart,
   resetTimer,
   isTimeOver,
-} from 'src/composable/stopwatch';
+} from 'src/composable/useTimer';
 import { useGameStore } from 'stores/game-store';
 import { storeToRefs } from 'pinia';
-import { useBackgroundMusic } from 'src/composable/useBackgroundMusic';
+import { useAudio } from 'src/composable/useAudio';
 import CardIndex from 'components/molecules/CardIndex.vue';
 import ModalFailedGame from 'components/molecules/ModalFailedGame.vue';
 import ModalNextLevel from 'components/organisms/ModalNextLevel.vue';
@@ -45,7 +45,7 @@ const {
 
 const useUser = useUserStore();
 
-const { audioCongratulation, audioPair } = useBackgroundMusic();
+const { audioCongratulation, audioPair } = useAudio();
 
 const flippedCards = ref<FlippedCard[]>([]);
 const flippedStatus = reactive<boolean[]>(Array(totalCards.value).fill(false));

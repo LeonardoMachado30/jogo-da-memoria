@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useBackgroundMusic } from 'src/composable/useBackgroundMusic';
+import { useAudio } from 'src/composable/useAudio';
 import { watch } from 'vue';
 
 const modelValue = defineModel({ default: false });
-const { audioGameOver } = useBackgroundMusic();
+const { audioGameOver } = useAudio();
 const emit = defineEmits(['onResetLevel']);
 
 watch(
