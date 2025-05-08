@@ -1,15 +1,24 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import type { Ranking } from 'src/stores/user-store';
 import { useUserStore } from 'src/stores/user-store';
+import { useAudio } from 'src/composable/useAudio';
 
 const modelValue = defineModel({ default: false });
 
 const useUser = useUserStore();
+const { audioClick } = useAudio();
+
 const rankingRaw = ref<Ranking[]>([]);
 
 onMounted(async () => {
   rankingRaw.value = await useUser.getTop10Ranking();
+});
+
+watch(modelValue, () => {
+  if (modelValue.value) {
+    audioClick();
+  }
 });
 </script>
 

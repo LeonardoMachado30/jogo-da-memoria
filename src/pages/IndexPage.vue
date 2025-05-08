@@ -6,7 +6,7 @@ import BtnLoginGoogle from 'components/atoms/BtnLoginGoogle.vue';
 import ModalSettings from 'components/organisms/ModalSettings.vue';
 import ModalRanking from 'components/organisms/ModalRanking.vue';
 
-const { audioMouseHover } = useAudio();
+const { audioMouseHover, audioClick } = useAudio();
 const useUser = useUserStore();
 const modalSettings = ref(false);
 const modalRanking = ref(false);
@@ -35,6 +35,7 @@ const modalRanking = ref(false);
         icon="play_arrow"
         class="bg-cyan-6 text-white q-mb-sm"
         to="/partida"
+        @click="audioClick"
         @mouseenter="audioMouseHover()"
       />
       <q-btn
