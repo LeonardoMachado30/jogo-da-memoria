@@ -33,7 +33,7 @@ export default function timer() {
       } else if (timer) {
         clearInterval(timer);
       }
-    }, 500);
+    }, 1000);
   };
 
   const mountedStart = () => {
