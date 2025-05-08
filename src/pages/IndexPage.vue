@@ -19,7 +19,7 @@ const modalCredits = ref(false);
 
 <template>
   <q-page class="flex column items-center justify-center">
-    <h1 class="text-principal text-bold m-none">Jogo da memória</h1>
+    <h1 class="text-principal text-bold m-none text-center">Jogo da memória</h1>
 
     <template v-if="useUser.getUser == null">
       <div class="flex column">
