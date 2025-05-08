@@ -17,10 +17,11 @@ const showModalSettings = ref(false);
 const isHome = computed(() => route.fullPath === '/');
 
 function clickPage() {
-  const isPauseMusic = localStorage.getItem('isPauseMusic');
-  if (!isPauseMusic) {
+  // const isPauseMusic = localStorage.getItem('isPauseMusic');
+  console.log('aqui');
+  // if (!isPauseMusic) {
     playMusic();
-  }
+  // }
 }
 
 onMounted(() => {

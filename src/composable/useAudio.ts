@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 
-const audioBackground = new Audio('/audio/lofi-coffee-332824.mp3');
+const audioBackground = new Audio('audio/lofi-coffee-332824.mp3');
 audioBackground.loop = true;
 
 const isPauseMusicStorage = localStorage.getItem('isPauseMusic');
@@ -56,11 +56,11 @@ function audioCreate(audioPath: string, isPlay = true) {
 }
 
 function audioCard() {
-  audioCreate('/audio/card-sounds-35956.mp3');
+  audioCreate('audio/card-sounds-35956.mp3');
 }
 
 function audioCongratulation() {
-  audioCreate('/audio/crowd-cheer-ii-6263.mp3');
+  audioCreate('audio/crowd-cheer-ii-6263.mp3');
   pauseMusic();
 
   setTimeout(() => {
@@ -69,19 +69,19 @@ function audioCongratulation() {
 }
 
 function audioPair() {
-  audioCreate('/audio/success-1-6297.mp3');
+  audioCreate('audio/success-1-6297.mp3');
 }
 
 function audioMouseHover() {
-  audioCreate('/audio/658431__deathbyfairydust__pop.wav');
+  audioCreate('audio/658431__deathbyfairydust__pop.wav');
 }
 
 function audioClick() {
-  audioCreate('/audio/801967__sadiquecat__kid-fingersnap-3.wav');
+  audioCreate('audio/801967__sadiquecat__kid-fingersnap-3.wav');
 }
 
 function audioGameOver() {
-  audioCreate('/audio/253886__themusicalnomad__negative_beeps.wav');
+  audioCreate('audio/253886__themusicalnomad__negative_beeps.wav');
   pauseMusic();
 
   // setTimeout(() => {
