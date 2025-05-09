@@ -135,3 +135,8 @@ então foi preferivel da minha parte manter as imagens nos arquivos locais, tamb
 Jogar sem logar
 
 Eu decidi colocar um modo de jogo sem o login do google, pois, acredito que a acessibilidade ao conteúdo seja bastante importante e torna o sistema mais convidativo.
+
+.env
+
+O projeto foi projetado com o .env protegendo os dados de conexão do firebase, caso precise acesse esse link:
+https://drive.google.com/file/d/1EFK5mJW9K0Z0hJNHyCVmayugsi9ub7V1/view?usp=sharing
