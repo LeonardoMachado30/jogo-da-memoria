@@ -119,12 +119,15 @@ npm run test:component
 ### Principais decisões técnicas
 
 Por que Quasar Framework?
+
 O projeto foi realizado com o Quasar Framework devido ao meus conhecimento previo avançado sobre a tecnologia e suas facilidades de integração com outras tecnologias.
 Foi utilizado o firebase para a API pois e gratuito e já vem com integrações funcionais rapidas e praticas, também oferece suporte a dados em tempo real sem a necessidade de configurar WebSocket.
 
 Imagens da API
+
 As imagens que deveriam estar na API estão diretamente no projeto, pois, o meu bucket do firebase estava solicitando pagando por eu já ter usado uma grande parte do bucket, também não foi possivel achar um bucket gratuito com qualidade é velocidade, 
 então foi preferivel da minha parte manter as imagens nos arquivos locais, também foi o único requisito do case que não consegui seguir a risca por motivos financeiro.
 
 Jogar sem logar
+
 Eu decidi colocar um modo de jogo sem o login do google, pois, acredito que a acessibilidade ao conteúdo seja bastante importante e torna o sistema mais convidativo.
