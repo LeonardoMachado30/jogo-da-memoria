@@ -82,30 +82,34 @@ yarn
 npm install
 ```
 
+## PREFERIVEL USAR O QUASAR CLI GLOBAL
+
+```bash
+npm i -g @quasar/cli
+# or
+yarn global add @quasar/cli
+```
+
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
 
+Sem quasar CLI Global
+```bash
+npm run dev
+```
+
+Com Quasar Cli Global
 ```bash
 quasar dev
 ```
 
-### Lint the files
-
-```bash
-yarn lint
-# or
-npm run lint
-```
-
-### Format the files
-
-```bash
-yarn format
-# or
-npm run format
-```
-
 ### Build the app for production
 
+Sem quasar CLI Global
+```bash
+npm run build
+```
+
+Com Quasar Cli Global
 ```bash
 quasar build
 ```
