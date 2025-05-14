@@ -2,7 +2,7 @@
 import { ref, watch, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useGameStore } from 'stores/game-store';
-import { formattedTime, formattedTimeStart, isTimeOver } from 'src/composable/useTimer';
+import { formattedTime, formattedTimeStart, isTimeOver } from 'src/composables/useTimer';
 import CardIndex from 'components/molecules/CardIndex.vue';
 import ModalFailedGame from 'components/organisms/ModalFailedGame.vue';
 import ModalNextLevel from 'components/organisms/ModalNextLevel.vue';

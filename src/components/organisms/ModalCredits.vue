@@ -15,6 +15,13 @@ const modelValue = defineModel({ default: false });
     <p>ganhou o jogo: https://pixabay.com/pt/sound-effects/crowd-cheer-ii-6263/</p>
     <p>Música de fundo: https://pixabay.com/pt/music/batidas-lofi-coffee-332824/</p>
     <p>Par de cartas feito: https://pixabay.com/pt/sound-effects/success-1-6297/</p>
+
+    <p>Imagens de emojis:</p>
+    <a
+      class="text-white"
+      href="https://br.freepik.com/vetores-gratis/conjunto-de-emoticons-tristes-e-felizes_9650747.htm#fromView=keyword&page=1&position=0&uuid=b716e7f2-5614-4332-ae4d-531d7496c50a&query=Emoticons"
+      >Imagem de pch.vector no Freepik</a
+    >
   </ModalDefault>
 </template>
 
