@@ -26,8 +26,8 @@ interface State {
   initialFlip: boolean;
   baseFruits: Fruit[];
   levelsConfig: LevelConfig[];
-  gameStartTime: number | null;
-  gameEndTime: number | null;
+  gameStartTime: number;
+  gameEndTime: number;
   flippedStatus: boolean[];
   lockBoard: boolean;
   flippedCards: FlippedCard[];
@@ -45,8 +45,8 @@ export const useGameStore = defineStore('game', {
     pulseTimerList: ['01:30', '01:00', '00:30'],
     attemptCounter: 0,
     currentLevel: 1,
-    gameStartTime: null,
-    gameEndTime: null,
+    gameStartTime: 0,
+    gameEndTime: 0,
     initialFlip: false,
     lockBoard: false,
     flippedStatus: [],
@@ -90,18 +90,22 @@ export const useGameStore = defineStore('game', {
       const found = state.levelsConfig.find((cfg) => cfg.level === state.currentLevel);
       return found ?? (state.levelsConfig[0] as LevelConfig);
     },
+
     gridSize(state): number {
       return state.levelsConfig.find((cfg) => cfg.level === state.currentLevel)?.gridSize || 4;
     },
+
     totalCards(state): number {
       const pairs = state.levelsConfig.find((cfg) => cfg.level === state.currentLevel)?.pairs || 8;
       return pairs * 2;
     },
+
     levelCardSet(state): Fruit[] {
       const pairs = state.levelsConfig.find((cfg) => cfg.level === state.currentLevel)?.pairs || 8;
       const selected = state.baseFruits.slice(0, pairs);
       return [...selected, ...selected];
     },
+
     gameDuration(state): number | null {
       if (state.gameStartTime !== null && state.gameEndTime !== null) {
         return state.gameEndTime - state.gameStartTime;
@@ -138,11 +142,12 @@ export const useGameStore = defineStore('game', {
       const useUser = useUserStore();
       if (useUser.getUser) {
         this.gameEndTime = Date.now();
+        const totalTime = this.gameTimeConvertForMinutes(this.gameStartTime, this.gameEndTime);
 
         if (useUser.getUser?.uid) {
           await useUser.updateRanking(useUser.getUser.uid, {
             score: this.currentScore,
-            gameTotal: this.gameDuration,
+            gameTotal: totalTime,
             attemptCounter: this.attemptCounter,
             ...useUser.getUser,
           });
@@ -206,6 +211,15 @@ export const useGameStore = defineStore('game', {
           }
         }
       }
+    },
+
+    gameTimeConvertForMinutes(startTime: number, endTime: number): string {
+      const diferencaMs = endTime - startTime;
+      const totalSeconds = Math.floor(diferencaMs / 1000);
+      const minutos = Math.floor(totalSeconds / 60);
+      const segundos = totalSeconds % 60;
+
+      return `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
     },
   },
 });

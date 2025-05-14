@@ -51,11 +51,10 @@ watch(modelValue, (newValue) => {
       <p class="text-h5 text-bold text-principal q-px-lg">
         Você conquistou o nível {{ currentLevel }}
       </p>
-      <div class="flex justify-center" style="gap: 10px">
-        <p>Pontuação: {{ currentScore }}</p>
-        <p>Tentivas: {{ attemptCounter }}</p>
-        <p>inicio: {{ gameStartTime }}</p>
-        <p>fim: {{ gameEndTime }}</p>
+      <div class="flex justify-center gap-4">
+        <p>Pontuação: {{ currentScore }}</p> -
+        <p>Tentivas: {{ attemptCounter }}</p> -
+        <p>Tempo total: {{ useGame.gameTimeConvertForMinutes(gameStartTime, gameEndTime) }}</p>
       </div>
     </template>
 
