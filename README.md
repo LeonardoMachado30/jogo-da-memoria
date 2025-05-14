@@ -82,30 +82,34 @@ yarn
 npm install
 ```
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
+PREFERIVEL USAR O QUASAR CLI GLOBAL
 
+```bash
+npm i -g @quasar/cli
+# or
+yarn global add @quasar/cli
+```
+
+### Iniciar projeto no modo dev (hot-code reloading, error reporting, etc.)
+
+Sem quasar CLI Global
+```bash
+npm run dev
+```
+
+Com Quasar Cli Global
 ```bash
 quasar dev
 ```
 
-### Lint the files
+### Contruir o app para proudção
 
+Sem quasar CLI Global
 ```bash
-yarn lint
-# or
-npm run lint
+npm run build
 ```
 
-### Format the files
-
-```bash
-yarn format
-# or
-npm run format
-```
-
-### Build the app for production
-
+Com Quasar Cli Global
 ```bash
 quasar build
 ```
@@ -115,3 +119,24 @@ quasar build
 ```bash
 npm run test:component
 ```
+
+### Principais decisões técnicas
+
+Por que Quasar Framework?
+
+O projeto foi realizado com o Quasar Framework devido ao meus conhecimento previo avançado sobre a tecnologia e suas facilidades de integração com outras tecnologias.
+Foi utilizado o firebase para a API pois e gratuito e já vem com integrações funcionais rapidas e praticas, também oferece suporte a dados em tempo real sem a necessidade de configurar WebSocket.
+
+Imagens da API
+
+As imagens que deveriam estar na API estão diretamente no projeto, pois, o meu bucket do firebase estava solicitando pagando por eu já ter usado uma grande parte do bucket, também não foi possivel achar um bucket gratuito com qualidade é velocidade, 
+então foi preferivel da minha parte manter as imagens nos arquivos locais, também foi o único requisito do case que não consegui seguir a risca por motivos financeiro.
+
+Jogar sem logar
+
+Eu decidi colocar um modo de jogo sem o login do google, pois, acredito que a acessibilidade ao conteúdo seja bastante importante e torna o sistema mais convidativo.
+
+.env
+
+O projeto foi projetado com o .env protegendo os dados de conexão do firebase, caso precise acesse esse link:
+https://drive.google.com/file/d/1EFK5mJW9K0Z0hJNHyCVmayugsi9ub7V1/view?usp=sharing
