@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAudio } from 'src/composable/useAudio';
+import { useAudio } from 'src/composables/useAudio';
 import { Dark } from 'quasar';
 import ModalDefault from 'components/organisms/ModalDefault.vue';
 

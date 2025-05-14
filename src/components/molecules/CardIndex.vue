@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { useAudio } from 'src/composable/useAudio';
+import { useAudio } from 'src/composables/useAudio';
 
 interface Card {
   src: string;

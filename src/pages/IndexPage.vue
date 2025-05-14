@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, defineAsyncComponent } from 'vue';
 import { useUserStore } from 'stores/user-store';
-import { useAudio } from 'src/composable/useAudio';
+import { useAudio } from 'src/composables/useAudio';
 
 const BtnLoginGoogle = defineAsyncComponent(() => import('components/atoms/BtnLoginGoogle.vue'));
 const ModalSettings = defineAsyncComponent(() => import('components/organisms/ModalSettings.vue'));

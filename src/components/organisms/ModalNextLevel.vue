@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useGameStore } from 'src/stores/game-store';
 import { storeToRefs } from 'pinia';
-import { useAudio } from 'src/composable/useAudio';
+import { useAudio } from 'src/composables/useAudio';
 import { watch } from 'vue';
 import ModalDefault from 'components/organisms/ModalDefault.vue';
 
@@ -52,8 +52,10 @@ watch(modelValue, (newValue) => {
         Você conquistou o nível {{ currentLevel }}
       </p>
       <div class="flex justify-center gap-4">
-        <p>Pontuação: {{ currentScore }}</p> -
-        <p>Tentivas: {{ attemptCounter }}</p> -
+        <p>Pontuação: {{ currentScore }}</p>
+        -
+        <p>Tentivas: {{ attemptCounter }}</p>
+        -
         <p>Tempo total: {{ useGame.gameTimeConvertForMinutes(gameStartTime, gameEndTime) }}</p>
       </div>
     </template>

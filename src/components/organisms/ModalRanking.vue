@@ -2,7 +2,7 @@
 import { ref, onMounted, watch } from 'vue';
 import type { Ranking } from 'src/stores/user-store';
 import { useUserStore } from 'src/stores/user-store';
-import { useAudio } from 'src/composable/useAudio';
+import { useAudio } from 'src/composables/useAudio';
 import ModalDefault from 'components/organisms/ModalDefault.vue';
 
 const modelValue = defineModel({ default: false });

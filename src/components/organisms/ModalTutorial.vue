@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useAudio } from 'src/composable/useAudio';
+import { useAudio } from 'src/composables/useAudio';
 import ModalDefault from 'components/organisms/ModalDefault.vue';
 
 const modelValue = defineModel({ default: false });

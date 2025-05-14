@@ -1,9 +1,10 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
-import { useAudio } from 'src/composable/useAudio';
+import { useAudio } from 'src/composables/useAudio';
 import { useUserStore } from 'src/stores/user-store';
-import timer, { formattedTime, resetTimer, resetTimerStart } from 'src/composable/useTimer';
+import timer, { formattedTime, resetTimer, resetTimerStart } from 'src/composables/useTimer';
+import { randomImagesEmojis } from 'src/model/images';
 
-interface Fruit {
+interface Images {
   src: string;
   alt: string;
 }
@@ -24,7 +25,7 @@ interface State {
   attemptCounter: number;
   currentLevel: number;
   initialFlip: boolean;
-  baseFruits: Fruit[];
+  randomImages: Images[];
   levelsConfig: LevelConfig[];
   gameStartTime: number;
   gameEndTime: number;
@@ -52,32 +53,7 @@ export const useGameStore = defineStore('game', {
     flippedStatus: [],
     flippedCards: [],
     cardRefs: [],
-    baseFruits: [
-      { src: 'fruits/abacaxi.png', alt: 'abacaxi' },
-      { src: 'fruits/banana.png', alt: 'banana' },
-      { src: 'fruits/beterraba.png', alt: 'beterraba' },
-      { src: 'fruits/carambola.png', alt: 'carambola' },
-      { src: 'fruits/cereja.png', alt: 'cereja' },
-      { src: 'fruits/kiwi.png', alt: 'kiwi' },
-      { src: 'fruits/laranja.png', alt: 'laranja' },
-      { src: 'fruits/limao.png', alt: 'limao' },
-      { src: 'fruits/manga.png', alt: 'manga' },
-      { src: 'fruits/melancia.png', alt: 'melancia' },
-      { src: 'fruits/mixirica.png', alt: 'mixirica' },
-      { src: 'fruits/morango.png', alt: 'morango' },
-      { src: 'fruits/pera.png', alt: 'pera' },
-      { src: 'fruits/pessego.png', alt: 'pessego' },
-      { src: 'fruits/pitaia.png', alt: 'pitaia' },
-      { src: 'fruits/tamarindo.png', alt: 'tamarindo' },
-      { src: 'fruits/uva.png', alt: 'uva' },
-      { src: 'fruits/uva_roxa.png', alt: 'uva roxa' },
-      { src: 'fruits/uva_verde.png', alt: 'uva verde' },
-      { src: 'fruits/jabuticaba.png', alt: 'jabuticaba' },
-      { src: 'fruits/maca_verde.png', alt: 'maca_verde' },
-      { src: 'fruits/melancia_cortada.png', alt: 'melancia cortada' },
-      { src: 'fruits/goiaba.png', alt: 'goiaba cortada' },
-      { src: 'fruits/lichia.png', alt: 'lichia' },
-    ],
+    randomImages: randomImagesEmojis,
     levelsConfig: [
       { level: 1, gridSize: 4, pairs: 8 },
       { level: 2, gridSize: 6, pairs: 18 },
@@ -100,9 +76,9 @@ export const useGameStore = defineStore('game', {
       return pairs * 2;
     },
 
-    levelCardSet(state): Fruit[] {
+    levelCardSet(state): Images[] {
       const pairs = state.levelsConfig.find((cfg) => cfg.level === state.currentLevel)?.pairs || 8;
-      const selected = state.baseFruits.slice(0, pairs);
+      const selected = state.randomImages.slice(0, pairs);
       return [...selected, ...selected];
     },
 

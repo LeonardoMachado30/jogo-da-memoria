@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useUserStore } from 'src/stores/user-store';
-import { useAudio } from 'src/composable/useAudio';
+import { useAudio } from 'src/composables/useAudio';
 import { useQuasar } from 'quasar';
 
 const $q = useQuasar();
