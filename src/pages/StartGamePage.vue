@@ -131,7 +131,6 @@ onMounted(() => {
           duration: 0.8,
           delay: index * 0.08,
           ease: 'back.out(1.2)',
-          // Adicionando 'undefined' explicitamente ao tipo de onComplete para evitar erro TS2379
           onComplete: (index === cards.length - 1
             ? () => {
                 useGame.startGameEffects();
@@ -235,6 +234,7 @@ onMounted(() => {
   position: relative;
   width: 100%;
   height: 100%;
+  opacity: 0;
 }
 
 .time-pulse-enter-active,
