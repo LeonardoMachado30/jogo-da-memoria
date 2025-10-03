@@ -19,23 +19,24 @@ const isHome = computed(() => route.fullPath === '/');
 
 function clickPage() {
   const isPauseMusic = localStorage.getItem('isPauseMusic');
-
-  if (!isPauseMusic) {
+  if (isPauseMusic == 'false') {
     playMusic();
+  } else {
+    pauseMusic();
   }
 }
 
 onMounted(() => {
-  document.addEventListener('click', clickPage, { once: true });
+  document.addEventListener('click', clickPage);
 
-  window.addEventListener('focus', playMusic);
+  // window.addEventListener('focus', clickPage);
 
-  window.addEventListener('blur', pauseMusic);
+  // window.addEventListener('blur', clickPage);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('focus', playMusic);
-  window.removeEventListener('blur', pauseMusic);
+  // window.removeEventListener('focus', clickPage);
+  // window.removeEventListener('blur', clickPage);
 });
 </script>
 
@@ -60,6 +61,8 @@ onUnmounted(() => {
             <q-btn icon="arrow_back" round color="black" to="/" />
           </div>
 
+          <ModalSettings></ModalSettings>
+
           <q-btn round push v-if="getUser?.photoURL">
             <q-avatar size="42px">
               <img :src="getUser.photoURL" />
@@ -68,7 +71,6 @@ onUnmounted(() => {
             <q-popup-proxy>
               <div class="row bg-white q-pa-sm flex gap-4" inline-actions>
                 <q-btn icon="logout" round color="red" @click="useUser.logout" />
-                <ModalSettings></ModalSettings>
                 <q-btn
                   icon="school"
                   round

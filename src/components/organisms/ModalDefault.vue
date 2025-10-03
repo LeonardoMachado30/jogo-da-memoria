@@ -11,6 +11,7 @@ const props = defineProps<{
   classActions?: string;
   classContainer?: string;
   styleContainer?: string;
+  persistent?: boolean;
 }>();
 
 const { audioClick } = useAudio();
@@ -23,7 +24,7 @@ watch(modelValue, () => {
 </script>
 
 <template>
-  <q-dialog v-model="modelValue" backdrop-filter="blur(6px)">
+  <q-dialog v-model="modelValue" backdrop-filter="blur(6px)" :persistent="persistent">
     <q-card :class="props.classContainer" :style="styleContainer">
       <q-card-section
         v-if="props.icon || props.title"

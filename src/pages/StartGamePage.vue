@@ -7,6 +7,7 @@ import CardIndex from 'components/molecules/CardIndex.vue';
 import ModalFailedGame from 'components/organisms/ModalFailedGame.vue';
 import ModalNextLevel from 'components/organisms/ModalNextLevel.vue';
 import gsap from 'gsap';
+import { useRoute } from 'vue-router';
 
 interface Card {
   src: string;
@@ -14,6 +15,7 @@ interface Card {
 }
 
 const useGame = useGameStore();
+const route = useRoute();
 const {
   initialFlip,
   currentScore,
@@ -26,6 +28,14 @@ const {
   flippedStatus,
   cardRefs,
 } = storeToRefs(useGame);
+
+watch(
+  () => route.query,
+  (val) => {
+    game.value.currentLevel = Number(val.level);
+  },
+  { immediate: true },
+);
 
 const showModalEnd = ref<boolean>(false);
 const isOneMinuteAlert = ref(false);
@@ -91,6 +101,7 @@ watch(isTimeOver, (val) => {
 onMounted(() => {
   // Animação de cartas sendo jogadas
   setTimeout(() => {
+    lockBoard.value = true;
     const cards = document.querySelectorAll('.card-wrapper');
     const gridContainer = document.querySelector('.--grid');
 

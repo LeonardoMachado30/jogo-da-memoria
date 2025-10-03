@@ -21,7 +21,7 @@ function goToLevel(level: number) {
   if (tl) {
     tl.reverse();
     tl.eventCallback('onReverseComplete', () => {
-      void router.push('/partida');
+      void router.push(`/partida?level=${game.value.currentLevel}`);
     });
   }
 }
@@ -116,7 +116,7 @@ onMounted(() => {
         v-for="value in levelsConfig"
         :key="value.level"
         :label="`Nível ${value.level}`"
-        @click="goToLevel(1)"
+        @click="goToLevel(value.level)"
         :color="value.color"
         :text-color="value.textColor"
         class="q-py-lg level text-weight-bolder full-width"

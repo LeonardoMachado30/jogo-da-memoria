@@ -16,6 +16,7 @@ interface LevelConfig {
   pairs: number;
   color: string;
   textColor: string;
+  deck: 'default' | 'hard';
 }
 
 interface CardRef {
@@ -59,18 +60,88 @@ export const useGameStore = defineStore('game', {
     cardRefs: [],
     currentGameCards: [],
     usedCardsIndices: new Set<number>(),
-    availableCards: [...randomImagesEmojis], // Pool de cartas disponíveis
+    availableCards: [...randomImagesEmojis],
     levelsConfig: [
-      { level: 1, gridSize: 4, pairs: 8, color: 'green-6', textColor: 'white' },
-      { level: 2, gridSize: 4, pairs: 10, color: 'amber-6', textColor: 'white' },
-      { level: 3, gridSize: 5, pairs: 10, color: 'red-6', textColor: 'white' },
-      { level: 4, gridSize: 5, pairs: 12, color: 'blue-6', textColor: 'white' },
-      { level: 5, gridSize: 6, pairs: 12, color: 'purple-6', textColor: 'white' },
-      { level: 6, gridSize: 5, pairs: 15, color: 'deep-orange-6', textColor: 'white' },
-      { level: 7, gridSize: 6, pairs: 15, color: 'teal-6', textColor: 'white' },
-      { level: 8, gridSize: 6, pairs: 18, color: 'indigo-6', textColor: 'white' },
-      { level: 9, gridSize: 4, pairs: 12, color: 'pink-6', textColor: 'white' },
-      { level: 10, gridSize: 6, pairs: 18, color: 'black', textColor: 'yellow-4' },
+      {
+        level: 1,
+        gridSize: 4,
+        pairs: 8,
+        color: 'green-6',
+        textColor: 'white',
+        deck: 'default',
+      },
+      {
+        level: 2,
+        gridSize: 4,
+        pairs: 10,
+        color: 'amber-6',
+        textColor: 'white',
+        deck: 'default',
+      },
+      {
+        level: 3,
+        gridSize: 5,
+        pairs: 10,
+        color: 'red-6',
+        textColor: 'white',
+        deck: 'default',
+      },
+      {
+        level: 4,
+        gridSize: 5,
+        pairs: 12,
+        color: 'blue-6',
+        textColor: 'white',
+        deck: 'default',
+      },
+      {
+        level: 5,
+        gridSize: 6,
+        pairs: 12,
+        color: 'purple-6',
+        textColor: 'white',
+        deck: 'default',
+      },
+      {
+        level: 6,
+        gridSize: 5,
+        pairs: 15,
+        color: 'deep-orange-6',
+        textColor: 'white',
+        deck: 'hard',
+      },
+      {
+        level: 7,
+        gridSize: 6,
+        pairs: 15,
+        color: 'teal-6',
+        textColor: 'white',
+        deck: 'hard',
+      },
+      {
+        level: 8,
+        gridSize: 6,
+        pairs: 18,
+        color: 'indigo-6',
+        textColor: 'white',
+        deck: 'hard',
+      },
+      {
+        level: 9,
+        gridSize: 4,
+        pairs: 12,
+        color: 'pink-6',
+        textColor: 'white',
+        deck: 'hard',
+      },
+      {
+        level: 10,
+        gridSize: 6,
+        pairs: 18,
+        color: 'black',
+        textColor: 'yellow-4',
+        deck: 'hard',
+      },
     ],
     game: {
       currentLevel: 1,
@@ -145,21 +216,40 @@ export const useGameStore = defineStore('game', {
       this.usedCardsIndices.clear();
     },
 
+    // 2. Função Principal: Cria Pares de Cartas Aleatórias
+    createRandomPairs(allCards: Images[], numberOfPairs: number): Images[] {
+      // Passo 1: Seleção Aleatória de Cartas (Sem Repetição)
+      // Faz uma cópia do array de cartas e o embaralha
+      const shuffledOriginalCards = this.shuffleArray(allCards);
+
+      // Pega o número necessário de cartas do topo (as primeiras 'numberOfPairs' cartas)
+      // Isso garante que são cartas únicas e aleatórias
+      const selectedCards = shuffledOriginalCards.slice(0, numberOfPairs);
+
+      // Passo 2: Criação dos Pares
+      // Duplica cada carta selecionada
+      const pairedCards = selectedCards.flatMap((card) => [card, card]);
+
+      // Passo 3: Embaralhamento Final
+      // Embaralha o array de pares para garantir que não estejam em ordem previsível
+      const finalShuffledPairs = this.shuffleArray(pairedCards);
+
+      return finalShuffledPairs;
+    },
+
     /**
      * Gera o conjunto de cartas para o nível atual
      */
     generateLevelCards(): void {
-      const pairs =
-        this.levelsConfig.find((cfg) => cfg.level === this.game.currentLevel)?.pairs || 8;
+      const deckChoose = this.currentConfig;
+      let selectDeck = randomImagesFruits;
 
-      // Seleciona cartas únicas que não foram usadas
-      const uniquePairs = this.selectUniqueCards(pairs);
+      if (deckChoose.deck === 'hard') {
+        selectDeck = randomImagesEmojis;
+      }
 
-      // Duplica os pares
-      const duplicatedCards = [...uniquePairs, ...uniquePairs];
-
-      // Embaralha as cartas duplicadas
-      this.currentGameCards = this.shuffleArray(duplicatedCards);
+      const gameCards = this.createRandomPairs(selectDeck, deckChoose.pairs);
+      this.currentGameCards = gameCards;
     },
 
     /**
@@ -193,7 +283,9 @@ export const useGameStore = defineStore('game', {
           audioCard();
           this.initialFlip = false;
           timer().mounted();
-          this.lockBoard = false;
+          setTimeout(() => {
+            this.lockBoard = false;
+          }, 1000);
         }, 5000);
       }, 600);
     },

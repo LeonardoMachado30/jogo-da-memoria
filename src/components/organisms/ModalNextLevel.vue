@@ -36,7 +36,6 @@ function nextLevel() {
 }
 
 function animateStars() {
-  // Aguarda um pouco para garantir que os elementos estão no DOM
   setTimeout(() => {
     const starsItem = document.querySelectorAll('.star-item');
 
@@ -101,6 +100,7 @@ onMounted(() => {
     styleContainer="border-radius: 16px"
     class-body="flex column items-center text-center"
     class-actions="flex justify-center"
+    persistent
   >
     <template #default>
       <!-- Container das estrelas -->

@@ -1,4 +1,4 @@
-export const fruits = [
+export const randomImagesFruits = [
   { src: 'fruits/abacaxi.png', alt: 'abacaxi' },
   { src: 'fruits/banana.png', alt: 'banana' },
   { src: 'fruits/beterraba.png', alt: 'beterraba' },
@@ -25,7 +25,7 @@ export const fruits = [
   { src: 'fruits/lichia.png', alt: 'lichia' },
 ];
 
-export const emojis = [
+export const randomImagesEmojis = [
   { src: 'emojis/amorzinho1.png', alt: 'amorzinho1' },
   { src: 'emojis/amorzinho2.png', alt: 'amorzinho2' },
   { src: 'emojis/amorzinho3.png', alt: 'amorzinho3' },
@@ -72,15 +72,15 @@ export const emojis = [
   { src: 'emojis/triste15.png', alt: 'triste15' },
 ];
 
-export function shuffleArray<T>(array: T[]): T[] {
-  const newArr = [...array];
-  for (let i = newArr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [newArr[i] as any, newArr[j] as any] = [newArr[j], newArr[i]];
-  }
-  return newArr;
-}
+// export function shuffleArray<T>(array: T[]): T[] {
+//   const newArr = [...array];
+//   for (let i = newArr.length - 1; i > 0; i--) {
+//     const j = Math.floor(Math.random() * (i + 1));
+//     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//     [newArr[i] as any, newArr[j] as any] = [newArr[j], newArr[i]];
+//   }
+//   return newArr;
+// }
 
-export const randomImagesEmojis = shuffleArray(emojis);
-export const randomImagesFruits = shuffleArray(fruits);
+// export const randomImagesEmojis = shuffleArray(emojis);
+// export const randomImagesFruits = shuffleArray(fruits);

@@ -5,7 +5,7 @@ audioBackground.loop = true;
 
 const isPauseMusicStorage = localStorage.getItem('isPauseMusic');
 const isPlaying = ref(!!isPauseMusicStorage);
-const volume = ref(0.5);
+const volume = ref(0.04);
 audioBackground.volume = volume.value;
 
 // Armazena os áudios para controle individual (pausar, continuar)
@@ -16,7 +16,7 @@ function playMusic() {
     .play()
     .then(() => {
       isPlaying.value = true;
-      localStorage.removeItem('isPauseMusic');
+      localStorage.setItem('isPauseMusic', 'false');
     })
     .catch((err) => {
       console.warn('Autoplay bloqueado:', err);

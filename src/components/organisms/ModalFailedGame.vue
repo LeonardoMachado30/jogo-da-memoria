@@ -31,6 +31,7 @@ watch(
     v-model="modelValue"
     class-body="flex column items-center text-center q-px-lg"
     class-actions="flex justify-center q-pa-lg"
+    persistent
   >
     <template #default>
       <q-img
