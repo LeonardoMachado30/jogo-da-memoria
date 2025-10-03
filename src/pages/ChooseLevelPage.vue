@@ -54,7 +54,7 @@ onMounted(() => {
   );
 
   // Animação de chacoalhar/vibrar
-  setInterval(() => {
+  setTimeout(() => {
     tl.to('.title', {
       x: -10,
       duration: 0.05,
@@ -108,7 +108,7 @@ onMounted(() => {
 
 <template>
   <q-page class="flex column items-center justify-center gap-6">
-    <h2 class="text-white text-h3 title">Selecione o nível</h2>
+    <h2 class="text-green text-h3 title text-weight-bolder">Selecione o nível</h2>
 
     <a href="/" class="text-red title q-mb-md">LOGIN NECESSARIO PARA CONTABILIZAR PONTOS</a>
 
@@ -118,7 +118,7 @@ onMounted(() => {
         @click="goToLevel(1)"
         color="green-6"
         text-color="white"
-        class="q-py-lg level1 full-width"
+        class="q-py-lg level1 full-width text-weight-bolder"
         style="max-width: 400px"
       />
       <q-btn
@@ -127,7 +127,7 @@ onMounted(() => {
         rounded
         color="amber-6"
         text-color="white"
-        class="q-py-lg level2 full-width"
+        class="q-py-lg level2 full-width text-weight-bolder"
         style="max-width: 400px"
       />
       <q-btn
@@ -136,7 +136,7 @@ onMounted(() => {
         glossy
         color="red-6"
         text-color="white"
-        class="q-py-lg level3 full-width"
+        class="q-py-lg level3 full-width text-weight-bolder"
         style="max-width: 400px"
       />
     </div>

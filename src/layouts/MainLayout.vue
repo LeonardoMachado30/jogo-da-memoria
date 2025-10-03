@@ -42,21 +42,28 @@ onUnmounted(() => {
 <template>
   <q-layout
     view="lHh Lpr lFf"
-    :style="`
-      background: url('background/tela-inicial.png');
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-position: center;
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      max-width: 100vw;
-      max-height: 100vh;
-      min-width: 100vw;
-      min-height: 100vh;
-    `"
+    :style="
+      isHome
+        ? `
+        background: url('background/tela-inicial.png');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+      `
+        : `
+        background: url('background/tela-inicial.png');
+        background-size: 90vh;
+        background-repeat: no-repeat;
+        background-position: center;
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        /* O scale do background é feito pelo background-size acima */
+      `
+    "
   >
     >
     <q-header class="bg-transparent text-principal q-py-md q-px-lg">
