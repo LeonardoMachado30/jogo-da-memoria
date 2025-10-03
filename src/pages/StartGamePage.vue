@@ -125,11 +125,11 @@ onMounted(() => {
           duration: 0.8,
           delay: index * 0.08,
           ease: 'back.out(1.2)',
-          onComplete: (index === cards.length - 1
-            ? () => {
-                useGame.startGameEffects();
-              }
-            : undefined) as (() => void) | undefined,
+          onComplete: () => {
+            if (index === cards.length - 1) {
+              useGame.startGameEffects();
+            }
+          },
         },
       );
     });
