@@ -20,8 +20,8 @@ function goToLevel(level: number) {
 
   if (tl) {
     tl.reverse();
-    tl.eventCallback('onReverseComplete', () => {
-      router.push('/partida').catch((e) => console.error(e));
+    tl.eventCallback('onReverseComplete', async () => {
+      await router.push('/partida');
     });
   }
 }

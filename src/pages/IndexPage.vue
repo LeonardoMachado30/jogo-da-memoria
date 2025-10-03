@@ -55,17 +55,20 @@ onMounted(() => {
 </script>
 
 <template>
-  <q-page class="flex column items-center justify-center">
+  <q-page class="flex column items-center">
     <!-- Tela inicial -->
-    <div class="flex column justify-center items-center">
-      <h1 class="text-white text-bold m-none text-center text-h4 md:text-h2 title">
+    <div class="flex column items-center">
+      <h1
+        class="text-black text-bold m-none text-center text-h2 md:text-h1 title"
+        style="text-shadow: 1px 1px 10px #fff"
+      >
         Jogo da memória
       </h1>
 
       <div class="animate-button">
         <q-btn
           icon="play_arrow"
-          class="bg-cyan-6 text-white q-mb-sm rounded-full"
+          class="bg-cyan-3 text-black q-mb-sm rounded-full shadow-sm"
           style="width: 100px; height: 100px"
           size="xl"
           rounded
@@ -86,7 +89,7 @@ onMounted(() => {
             label="Tutorial"
             rounded
             icon="school"
-            class="bg-cyan-6 text-white q-mb-sm full-width"
+            class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm"
             @click="modalSchool = !modalSchool"
             @mouseenter="audioMouseHover()"
           />
@@ -97,7 +100,7 @@ onMounted(() => {
             label="configurações"
             rounded
             icon="settings"
-            class="bg-cyan-6 text-white q-mb-sm full-width"
+            class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm"
             @click="modalSettings = !modalSettings"
             @mouseenter="audioMouseHover()"
           />
@@ -107,7 +110,7 @@ onMounted(() => {
           <div class="animate-button">
             <q-btn
               rounded
-              class="bg-cyan-6 text-white q-mb-sm full-width"
+              class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm"
               @click="modalRanking = !modalRanking"
               @mouseenter="audioMouseHover()"
             >
@@ -124,7 +127,7 @@ onMounted(() => {
             icon="copyright"
             label="Créditos"
             rounded
-            class="bg-cyan-6 text-white q-mb-sm full-width"
+            class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm"
             @click="modalCredits = !modalCredits"
             @mouseenter="audioMouseHover()"
           />
