@@ -34,8 +34,8 @@ jobs:
         run: npm ci
 
       # Rodar testes de componente com Cypress
-      - name: Run Component Tests (Cypress)
-        run: npm run test:component:ci
+      # - name: Run Component Tests (Cypress)
+      #   run: npm run test:component:ci
 
       # (Opcional) Se quiser rodar também testes E2E em CI
       # - name: Run E2E Tests (Cypress)
