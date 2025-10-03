@@ -11,10 +11,10 @@ const router = useRouter();
 const useGame = useGameStore();
 const useUser = useUserStore();
 
-const { currentLevel } = storeToRefs(useGame);
+const { game } = storeToRefs(useGame);
 
 async function goToLevel(level: number) {
-  currentLevel.value = level;
+  game.value.currentLevel = level;
   await router.push('/partida');
 }
 </script>

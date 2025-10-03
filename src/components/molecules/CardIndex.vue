@@ -10,7 +10,7 @@ interface Card {
 const props = defineProps<{
   card: Card;
   index: number;
-  flippedExternally: boolean | undefined;
+  flippedExternally: boolean;
   locked: boolean;
 }>();
 
