@@ -55,7 +55,7 @@ onUnmounted(() => {
       `
         : `
         background: url('background/tela-inicial.png');
-        background-size: 90vh;
+        background-size: cover;
         background-repeat: no-repeat;
         background-position: center;
         position: fixed;
