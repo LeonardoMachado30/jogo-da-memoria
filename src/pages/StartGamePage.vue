@@ -131,13 +131,12 @@ onMounted(() => {
           duration: 0.8,
           delay: index * 0.08,
           ease: 'back.out(1.2)',
-          onComplete:
-            index === cards.length - 1
-              ? () => {
-                  // Executa apenas quando a última carta terminar de animar
-                  useGame.startGameEffects();
-                }
-              : undefined,
+          // Adicionando 'undefined' explicitamente ao tipo de onComplete para evitar erro TS2379
+          onComplete: (index === cards.length - 1
+            ? () => {
+                useGame.startGameEffects();
+              }
+            : undefined) as (() => void) | undefined,
         },
       );
     });

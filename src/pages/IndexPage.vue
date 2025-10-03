@@ -26,7 +26,7 @@ function onStartGame() {
   if (tl) {
     tl.reverse();
     tl.eventCallback('onReverseComplete', () => {
-      router.push('/escolher-nivel').catch((e) => console.error(e));
+      router.push('/escolher-nivel').catch((e) => console.error(e)); // eslint-disable-line @typescript-eslint/no-misused-promises
     });
   }
 }

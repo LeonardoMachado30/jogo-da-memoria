@@ -21,7 +21,7 @@ function goToLevel(level: number) {
   if (tl) {
     tl.reverse();
     tl.eventCallback('onReverseComplete', () => {
-      router.push('/partida').catch((e) => console.error(e));
+      router.push('/partida').catch((e) => console.error(e)); // eslint-disable-line @typescript-eslint/no-misused-promises
     });
   }
 }
