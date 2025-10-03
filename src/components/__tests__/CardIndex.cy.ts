@@ -85,21 +85,20 @@ describe('CardIndex.vue', () => {
   });
 
   it('volta para baixo se flippedExternally mudar para false', () => {
-    mount(CardIndex, {
+    cy.mount(CardIndex, {
       props: {
         card: mockCard,
         index: 0,
         flippedExternally: true,
         locked: false,
       },
+    }).then(({ wrapper }) => {
+      // Cypress vai ficar tentando até encontrar flip-up
+      cy.get('.card-container').should('have.class', 'flip-up');
+
+      // troca a prop
+      wrapper.setProps({ flippedExternally: false });
+      cy.get('.card-container').should('have.class', 'flip-down');
     });
-
-    cy.tick(600);
-    cy.get('.card-container').should('have.class', 'flip-up');
-
-    cy.wrap(Cypress.vueWrapper).invoke('setProps', { flippedExternally: false });
-
-    cy.tick(600);
-    cy.get('.card-container').should('have.class', 'flip-down');
   });
 });
