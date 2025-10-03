@@ -19,7 +19,7 @@ const {
   currentScore,
   gridSize,
   levelCardSet,
-  currentLevel,
+  game,
   totalCards,
   lockBoard,
   attemptCounter,
@@ -100,12 +100,6 @@ onMounted(() => {
     const centerX = containerRect.width / 2;
     const centerY = window.innerHeight;
 
-    gsap.fromTo(
-      '.time-pulse-enter-active',
-      { y: window.screenY, opacity: 0 },
-      { y: 0, opacity: 1, duration: 30, ease: 'elastic.out(1,0.9)' },
-    );
-
     cards.forEach((card, index) => {
       const cardRect = card.getBoundingClientRect();
       const cardCenterX = cardRect.left - containerRect.left + cardRect.width / 2;
@@ -162,7 +156,7 @@ onMounted(() => {
           box-shadow: 2px 0px 6px #000;
         "
       >
-        Nivel: {{ currentLevel }}
+        Nivel: {{ game.currentLevel }}
       </p>
       <p
         style="
@@ -203,7 +197,7 @@ onMounted(() => {
           <CardIndex
             :index="index"
             :card="fruits[index] ?? { src: '', alt: '' }"
-            :flipped-externally="initialFlip || flippedStatus[index]"
+            :flipped-externally="!!initialFlip || !!flippedStatus[index]"
             :locked="lockBoard"
             @flip="useGame.onFlip"
             ref="cardRefs"
@@ -212,7 +206,7 @@ onMounted(() => {
       </template>
     </div>
 
-    <ModalNextLevel v-model:showModal="showModalEnd" />
+    <ModalNextLevel v-if="showModalEnd" v-model:showModal="showModalEnd" :stars-count="3" />
 
     <ModalFailedGame v-model="modalFailedGame" />
   </q-page>
@@ -235,13 +229,6 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   opacity: 0;
-}
-
-.time-pulse-enter-active,
-.time-pulse-leave-active {
-  transition:
-    transform 0.5s ease,
-    opacity 0.5s ease;
 }
 
 .time-pulse-enter-from,

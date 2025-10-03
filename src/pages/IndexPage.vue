@@ -65,8 +65,10 @@ onMounted(() => {
       <div class="animate-button">
         <q-btn
           icon="play_arrow"
-          class="bg-cyan-6 text-white q-mb-sm"
+          class="bg-cyan-6 text-white q-mb-sm rounded-full"
+          style="width: 100px; height: 100px"
           size="xl"
+          rounded
           @click="onStartGame"
           @mouseenter="audioMouseHover()"
         />
@@ -129,11 +131,10 @@ onMounted(() => {
         </div>
       </section>
 
-      <p class="createdBy font-black">Created by: Flávio Leonardo</p>
+      <p class="createdBy font-black text-white text-bold fixed-bottom-right q-ma-md">
+        Created by: Flávio Leonardo
+      </p>
     </div>
-
-    <!-- Componente escolha de nível -->
-    <!-- <ChooseLevel v-else /> -->
 
     <!-- Outros modais ainda funcionam -->
     <ModalSettings v-if="modalSettings" v-model="modalSettings" />

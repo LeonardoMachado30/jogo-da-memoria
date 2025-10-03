@@ -10,12 +10,12 @@ const router = useRouter();
 const useGame = useGameStore();
 const { audioClick } = useAudio();
 
-const { currentLevel } = storeToRefs(useGame);
+const { game, levelsConfig } = storeToRefs(useGame);
 
 const tl = gsap.timeline();
 
 function goToLevel(level: number) {
-  currentLevel.value = level;
+  game.value.currentLevel = level;
   audioClick();
 
   if (tl) {
@@ -27,31 +27,29 @@ function goToLevel(level: number) {
 }
 
 onMounted(() => {
-  tl.fromTo(
-    '.title',
-    { y: 200, opacity: 0 },
-    { y: 0, opacity: 1, duration: 1, ease: 'elastic.out(1,0.5)' },
-  );
+  const levelsContainer = document.querySelectorAll('.level');
 
-  tl.fromTo(
-    '.level1',
-    { y: 200, opacity: 0 },
-    { y: 0, opacity: 1, duration: 1, ease: 'elastic.out(1,0.5)' },
-  );
+  levelsContainer.forEach((level) => {
+    tl.fromTo(
+      level,
+      { y: 200, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.1,
+        delay: 0.2,
+        ease: 'elastic.out(1,0.1)',
+      },
+    );
+  });
 
-  tl.fromTo(
-    '.level2',
-    { y: 200, opacity: 0 },
-    { y: 0, opacity: 1, duration: 1, ease: 'elastic.out(1,0.4)' },
-    '-=0.5',
-  );
-
-  tl.fromTo(
-    '.level3',
-    { y: 200, opacity: 0 },
-    { y: 0, opacity: 1, duration: 1, ease: 'elastic.out(1,0.3)' },
-    '-=0.5',
-  );
+  tl.to('.title', {
+    x: -10,
+    duration: 0.05,
+    ease: 'power1.inOut',
+    yoyo: true,
+    repeat: 1,
+  });
 
   // Animação de chacoalhar/vibrar
   setTimeout(() => {
@@ -107,39 +105,32 @@ onMounted(() => {
 </script>
 
 <template>
-  <q-page class="flex column items-center justify-center gap-6">
-    <h2 class="text-green text-h3 title text-weight-bolder">Selecione o nível</h2>
+  <q-page
+    class="flex column items-center gap-6 q-px-sm"
+    style="max-width: 900px; margin: 0 auto; bottom: 40px"
+  >
+    <h2 class="text-red text-h3 text-weight-bolder">Selecione o nível</h2>
 
-    <a href="/" class="text-red title q-mb-md">LOGIN NECESSARIO PARA CONTABILIZAR PONTOS</a>
-
-    <div class="flex column justify-center items-center gap-4 full-width">
+    <div class="flex justify-center items-center gap-4 full-width">
       <q-btn
-        label="Nível 1"
+        v-for="value in levelsConfig"
+        :key="value.level"
+        :label="`Nível ${value.level}`"
         @click="goToLevel(1)"
-        color="green-6"
-        text-color="white"
-        class="q-py-lg level1 full-width text-weight-bolder"
-        style="max-width: 400px"
-      />
-      <q-btn
-        label="Nível 2"
-        @click="goToLevel(2)"
-        rounded
-        color="amber-6"
-        text-color="white"
-        class="q-py-lg level2 full-width text-weight-bolder"
-        style="max-width: 400px"
-      />
-      <q-btn
-        label="Nível 3"
-        @click="goToLevel(3)"
-        glossy
-        color="red-6"
-        text-color="white"
-        class="q-py-lg level3 full-width text-weight-bolder"
-        style="max-width: 400px"
+        :color="value.color"
+        :text-color="value.textColor"
+        class="q-py-lg level text-weight-bolder full-width"
+        :class="`level${value.level}`"
+        style="max-width: 200px; height: 200px"
       />
     </div>
+
+    <a
+      href="/"
+      class="text-black bg-red rounded-md shadow-lg text-bold title fixed-bottom text-center"
+      style="max-width: 400px; margin: 0 auto; bottom: 40px"
+      >LOGIN NECESSARIO PARA CONTABILIZAR CONQUISTAS</a
+    >
   </q-page>
 </template>
 

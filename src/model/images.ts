@@ -1,4 +1,4 @@
-const fruits = [
+export const fruits = [
   { src: 'fruits/abacaxi.png', alt: 'abacaxi' },
   { src: 'fruits/banana.png', alt: 'banana' },
   { src: 'fruits/beterraba.png', alt: 'beterraba' },
@@ -25,7 +25,7 @@ const fruits = [
   { src: 'fruits/lichia.png', alt: 'lichia' },
 ];
 
-const emojis = [
+export const emojis = [
   { src: 'emojis/amorzinho1.png', alt: 'amorzinho1' },
   { src: 'emojis/amorzinho2.png', alt: 'amorzinho2' },
   { src: 'emojis/amorzinho3.png', alt: 'amorzinho3' },

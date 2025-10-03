@@ -9,6 +9,8 @@ const props = defineProps<{
   title?: string;
   classBody?: string;
   classActions?: string;
+  classContainer?: string;
+  styleContainer?: string;
 }>();
 
 const { audioClick } = useAudio();
@@ -22,7 +24,7 @@ watch(modelValue, () => {
 
 <template>
   <q-dialog v-model="modelValue" backdrop-filter="blur(6px)">
-    <q-card>
+    <q-card :class="props.classContainer" :style="styleContainer">
       <q-card-section
         v-if="props.icon || props.title"
         class="bg-cyan-6 text-white flex items-center gap-4"
