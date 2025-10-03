@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useAudio } from 'src/composables/useAudio';
 import { Dark } from 'quasar';
-import ModalDefault from 'components/organisms/ModalDefault.vue';
+// import ModalDefault from 'components/organisms/ModalDefault.vue';
 
-const modelValue = defineModel({ default: false });
+// const modelValue = defineModel({ default: false });
 
 const { pauseMusic, playMusic, isPlaying } = useAudio();
 
@@ -21,25 +21,25 @@ const toggleDark = () => {
 </script>
 
 <template>
-  <ModalDefault
+  <!-- <ModalDefault
     v-model="modelValue"
     title="Configuraçõoes"
     icon="settings"
     classBody="flex justify-center gap-4"
-  >
-    <q-btn
-      @click="changeVolume"
-      :icon="isPlaying ? 'volume_up' : 'volume_down'"
-      round
-      color="amber-6"
-    />
-    <q-btn
-      :icon="Dark.isActive ? 'dark_mode' : 'light_mode'"
-      round
-      color="amber-6"
-      @click="toggleDark"
-    />
-  </ModalDefault>
+  > -->
+  <q-btn
+    @click="changeVolume"
+    :icon="isPlaying ? 'volume_up' : 'volume_down'"
+    round
+    color="black"
+  />
+  <q-btn
+    :icon="Dark.isActive ? 'dark_mode' : 'light_mode'"
+    round
+    color="black"
+    @click="toggleDark"
+  />
+  <!-- </ModalDefault> -->
 </template>
 
 <style scoped></style>

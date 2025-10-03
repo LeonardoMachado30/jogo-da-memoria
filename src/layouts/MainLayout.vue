@@ -13,7 +13,6 @@ const { getUser } = storeToRefs(useUser);
 
 const { playMusic, pauseMusic } = useAudio();
 
-const showModalSettings = ref(false);
 const showModalSchool = ref(false);
 
 const isHome = computed(() => route.fullPath === '/');
@@ -41,43 +40,59 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header class="bg-transparent text-principal q-py-md">
+  <q-layout
+    view="lHh Lpr lFf"
+    :style="`
+      background: url('background/tela-inicial.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      max-width: 100vw;
+      max-height: 100vh;
+      min-width: 100vw;
+      min-height: 100vh;
+    `"
+  >
+    >
+    <q-header class="bg-transparent text-principal q-py-md q-px-lg">
       <div
         class="flex items-center mx-auto"
         :class="[isHome ? 'justify-end' : 'justify-between']"
         style="max-width: 900px"
       >
         <div v-if="!isHome" class="flex" style="gap: 10px">
-          <q-btn icon="arrow_back" round color="cyan-6" to="/" />
-          <q-btn
-            icon="settings"
-            round
-            color="cyan-6"
-            @click="showModalSettings = !showModalSettings"
-          />
-          <q-btn icon="school" round color="cyan-6" @click="showModalSchool = !showModalSchool" />
+          <q-btn icon="arrow_back" round color="black" to="/" />
         </div>
 
-        <div v-if="getUser" class="flex items-center self-end gap-4" style="gap: 10px">
-          <q-img
-            v-if="getUser.photoURL"
-            :srcset="getUser?.photoURL"
-            width="50px"
-            height="50px"
-            class="q-btn--rounded"
-          />
-          <p class="no-margin">{{ getUser.nome }}</p>
-          <q-btn icon="logout" round color="cyan-6" @click="useUser.logout" />
-        </div>
+        <q-btn round push v-if="getUser?.photoURL">
+          <q-avatar size="42px">
+            <img :src="getUser.photoURL" />
+          </q-avatar>
+
+          <q-popup-proxy>
+            <div class="row bg-white q-pa-sm flex gap-4" inline-actions>
+              <q-btn icon="logout" round color="red" @click="useUser.logout" />
+              <ModalSettings></ModalSettings>
+              <q-btn
+                icon="school"
+                round
+                color="black"
+                @click="showModalSchool = !showModalSchool"
+              />
+            </div>
+          </q-popup-proxy>
+        </q-btn>
       </div>
     </q-header>
 
-    <q-page-container class="background-primary">
+    <q-page-container>
       <router-view />
     </q-page-container>
-
-    <ModalSettings v-model="showModalSettings" />
 
     <ModalTutorial v-model="showModalSchool" />
   </q-layout>

@@ -52,11 +52,11 @@ watch(modelValue, (newValue) => {
         Você conquistou o nível {{ currentLevel }}
       </p>
       <div class="flex justify-center gap-4">
-        <p>Pontuação: {{ currentScore }}</p>
-        -
-        <p>Tentivas: {{ attemptCounter }}</p>
-        -
-        <p>Tempo total: {{ useGame.gameTimeConvertForMinutes(gameStartTime, gameEndTime) }}</p>
+        <q-chip color="cyan" text-color="black">Pontuação: {{ currentScore }}</q-chip>
+        <q-chip color="yellow" text-color="black">Tentivas: {{ attemptCounter }}</q-chip>
+        <q-chip color="green" text-color="black">
+          Tempo total: {{ useGame.gameTimeConvertForMinutes(gameStartTime, gameEndTime) }}
+        </q-chip>
       </div>
     </template>
 

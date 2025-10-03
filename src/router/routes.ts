@@ -13,6 +13,10 @@ const routes: RouteRecordRaw[] = [
         path: '/partida',
         component: () => import('pages/StartGamePage.vue'),
       },
+      {
+        path: '/escolher-nivel',
+        component: () => import('pages/ChooseLevelPage.vue'),
+      },
     ],
   },
   // Always leave this as last one,

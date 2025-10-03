@@ -52,7 +52,7 @@ defineExpose({
     class="card-container"
     :class="flipClass"
     @click="toggleFlip"
-    style="min-height: 60px; min-width: 60px"
+    style="border: 5px; border-color: blue"
   >
     <div class="card-inner">
       <div class="card-face card-back"></div>
@@ -72,7 +72,6 @@ defineExpose({
 .card-container {
   perspective: 1000px;
   cursor: pointer;
-  width: 100%;
   aspect-ratio: 1/1;
 }
 

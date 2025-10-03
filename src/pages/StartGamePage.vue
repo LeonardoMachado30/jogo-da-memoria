@@ -6,6 +6,7 @@ import { formattedTime, formattedTimeStart, isTimeOver } from 'src/composables/u
 import CardIndex from 'components/molecules/CardIndex.vue';
 import ModalFailedGame from 'components/organisms/ModalFailedGame.vue';
 import ModalNextLevel from 'components/organisms/ModalNextLevel.vue';
+import gsap from 'gsap';
 
 interface Card {
   src: string;
@@ -35,8 +36,7 @@ function shuffleArray<T>(array: T[]): T[] {
   const newArr = [...array];
   for (let i = newArr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [newArr[i] as any, newArr[j] as any] = [newArr[j], newArr[i]];
+    [newArr[i] as any, newArr[j] as any] = [newArr[j], newArr[i]]; // eslint-disable-line @typescript-eslint/no-explicit-any
   }
   return newArr;
 }
@@ -64,24 +64,23 @@ watch(
   async (newValue) => {
     if (newValue.every((val) => val)) {
       showModalEnd.value = true;
-
       await useGame.endGame();
     }
   },
   { deep: true },
 );
 
-watch(initialFlip, (val) => {
-  if (val) {
-    const interval = setInterval(() => {
-      pulseKey.value++;
-    }, 600);
+// watch(initialFlip, (val) => {
+//   if (val) {
+//     const interval = setInterval(() => {
+//       pulseKey.value++;
+//     }, 30000);
 
-    setTimeout(() => {
-      clearInterval(interval);
-    }, 5000);
-  }
-});
+//     setTimeout(() => {
+//       clearInterval(interval);
+//     }, 10000);
+//   }
+// });
 
 watch(isTimeOver, (val) => {
   if (val && !showModalEnd.value) {
@@ -90,18 +89,119 @@ watch(isTimeOver, (val) => {
 });
 
 onMounted(() => {
-  useGame.startGameEffects();
+  // Animação de cartas sendo jogadas
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.card-wrapper');
+    const gridContainer = document.querySelector('.--grid');
+
+    if (!gridContainer || cards.length === 0) return;
+
+    const containerRect = gridContainer.getBoundingClientRect();
+    const centerX = containerRect.width / 2;
+    const centerY = window.innerHeight;
+
+    gsap.fromTo(
+      '.time-pulse-enter-active',
+      { y: window.screenY, opacity: 0 },
+      { y: 0, opacity: 1, duration: 30, ease: 'elastic.out(1,0.9)' },
+    );
+
+    cards.forEach((card, index) => {
+      const cardRect = card.getBoundingClientRect();
+      const cardCenterX = cardRect.left - containerRect.left + cardRect.width / 2;
+
+      const deltaX = centerX - cardCenterX;
+      const deltaY = centerY - cardRect.top;
+
+      gsap.fromTo(
+        card,
+        {
+          x: deltaX,
+          y: deltaY,
+          rotation: gsap.utils.random(-45, 45),
+          scale: 0.3,
+          opacity: 0,
+        },
+        {
+          x: 0,
+          y: 0,
+          rotation: 0,
+          scale: 1,
+          opacity: 1,
+          duration: 0.8,
+          delay: index * 0.08,
+          ease: 'back.out(1.2)',
+          onComplete:
+            index === cards.length - 1
+              ? () => {
+                  // Executa apenas quando a última carta terminar de animar
+                  useGame.startGameEffects();
+                }
+              : undefined,
+        },
+      );
+    });
+  }, 200);
+
+  const interval = setInterval(() => {
+    pulseKey.value++;
+  }, 30000);
+
+  setTimeout(() => {
+    clearInterval(interval);
+  }, 10000);
 });
 </script>
 
 <template>
   <q-page class="--container">
-    <section>
-      <div
-        class="--grid"
-        :style="{ gridTemplateColumns: `repeat(${gridSize}, minmax(20px, 1fr))` }"
+    <div class="flex justify-around text-blue text-weight-bolder text-body1 q-px-md q-mb-xl row">
+      <p
+        style="
+          background-color: white;
+          border-radius: 12px;
+          padding: 10px;
+          box-shadow: 2px 0px 6px #000;
+        "
       >
-        <template v-for="(total, index) in totalCards" :key="index">
+        Nivel: {{ currentLevel }}
+      </p>
+      <p
+        style="
+          background-color: white;
+          border-radius: 12px;
+          padding: 10px;
+          box-shadow: 2px 0px 6px #000;
+        "
+      >
+        Pontuação: {{ currentScore }}
+      </p>
+      <p
+        style="
+          background-color: white;
+          border-radius: 12px;
+          padding: 10px;
+          box-shadow: 2px 0px 6px #000;
+        "
+      >
+        Tentativas: {{ attemptCounter }}
+      </p>
+      <p
+        :key="pulseKey"
+        style="
+          background-color: white;
+          border-radius: 12px;
+          padding: 10px;
+          box-shadow: 2px 0px 6px #000;
+        "
+      >
+        {{ initialFlip ? formattedTimeStart : formattedTime }}
+      </p>
+    </div>
+
+    <div class="--grid" :style="{ gridTemplateColumns: `repeat(${gridSize}, minmax(20px, 1fr))` }">
+      <template v-for="(total, index) in totalCards" :key="index">
+        <div class="card-wrapper">
           <CardIndex
             :index="index"
             :card="fruits[index] ?? { src: '', alt: '' }"
@@ -110,20 +210,9 @@ onMounted(() => {
             @flip="useGame.onFlip"
             ref="cardRefs"
           />
-        </template>
-      </div>
-
-      <div class="flex justify-between text-principal q-pt-md">
-        <p>Nivel: {{ currentLevel }}</p>
-        <p>Pontuação: {{ currentScore }}</p>
-        <p>Tentativas: {{ attemptCounter }}</p>
-        <transition name="time-pulse" mode="out-in">
-          <p :key="initialFlip ? 'pulse-' + pulseKey : formattedTime" class="text-bold">
-            {{ initialFlip ? formattedTimeStart : formattedTime }}
-          </p>
-        </transition>
-      </div>
-    </section>
+        </div>
+      </template>
+    </div>
 
     <ModalNextLevel v-model:showModal="showModalEnd" />
 
@@ -135,12 +224,18 @@ onMounted(() => {
 .--container {
   max-width: 720px;
   margin: 0 auto;
-  padding: 40px 1rem 0 1rem;
+  padding: 0px 1rem 0 1rem;
 }
 
 .--grid {
   display: grid;
   grid-gap: 8px;
+}
+
+.card-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .time-pulse-enter-active,
