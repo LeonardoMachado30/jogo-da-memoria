@@ -47,6 +47,9 @@ onUnmounted(() => {
       src="background/tela-inicial.png"
       class="background-blur"
       :class="{ 'background-blur--home': isHome, 'background-blur--other': !isHome }"
+      alt="tela de fundo"
+      fetchpriority="high"
+      no-spinner
     ></q-img>
 
     <!-- Conteúdo principal acima do background -->
@@ -61,25 +64,27 @@ onUnmounted(() => {
             <q-btn icon="arrow_back" round color="black" to="/" />
           </div>
 
-          <ModalSettings></ModalSettings>
+          <div>
+            <ModalSettings></ModalSettings>
 
-          <q-btn round push v-if="getUser?.photoURL">
-            <q-avatar size="42px">
-              <img :src="getUser.photoURL" />
-            </q-avatar>
+            <q-btn round push v-if="getUser?.photoURL">
+              <q-avatar size="42px">
+                <img :src="getUser.photoURL" />
+              </q-avatar>
 
-            <q-popup-proxy>
-              <div class="row bg-white q-pa-sm flex gap-4" inline-actions>
-                <q-btn icon="logout" round color="red" @click="useUser.logout" />
-                <q-btn
-                  icon="school"
-                  round
-                  color="black"
-                  @click="showModalSchool = !showModalSchool"
-                />
-              </div>
-            </q-popup-proxy>
-          </q-btn>
+              <q-popup-proxy>
+                <div class="row bg-white q-pa-sm flex gap-4" inline-actions>
+                  <q-btn icon="logout" round color="red" @click="useUser.logout" />
+                  <q-btn
+                    icon="school"
+                    round
+                    color="black"
+                    @click="showModalSchool = !showModalSchool"
+                  />
+                </div>
+              </q-popup-proxy>
+            </q-btn>
+          </div>
         </div>
       </q-header>
 
@@ -104,26 +109,17 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   z-index: 0;
-  filter: blur(5px) brightness(0.95);
-  width: 100vw;
-  height: 100vh;
-}
-
-.background-blur--home,
-.background-blur--other {
-  width: 100vw;
-  height: 100vh;
-}
-
-.background-blur--home q-img,
-.background-blur--other q-img {
-  width: 100vw !important;
-  height: 100vh !important;
+  filter: blur(1px) brightness(1);
   object-fit: cover !important;
+  transition: transform 2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.background-blur--home {
+  transform: scale(2.3);
 }
 
 .background-blur--other {
-  background-size: cover;
+  transform: scale(1);
 }
 
 .main-layout-content {

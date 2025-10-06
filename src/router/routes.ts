@@ -11,7 +11,7 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: '/partida',
-        component: () => import('pages/StartGamePage.vue'),
+        component: () => import('pages/GamePage.vue'),
       },
       {
         path: '/escolher-nivel',

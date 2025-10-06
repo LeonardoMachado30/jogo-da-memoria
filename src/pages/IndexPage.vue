@@ -4,6 +4,7 @@ import { useUserStore } from 'stores/user-store';
 import { useAudio } from 'src/composables/useAudio';
 import gsap from 'gsap';
 import { useRouter } from 'vue-router';
+// import { titleAnimation } from 'src/animations/text';
 const BtnLoginGoogle = defineAsyncComponent(() => import('components/atoms/BtnLoginGoogle.vue'));
 const ModalSettings = defineAsyncComponent(() => import('components/organisms/ModalSettings.vue'));
 const ModalRanking = defineAsyncComponent(() => import('components/organisms/ModalRanking.vue'));
@@ -32,10 +33,23 @@ function onStartGame() {
 }
 
 onMounted(() => {
+  // titleAnimation(tl);
+  const title = document.querySelectorAll('.title');
+
+  // const titleRect = title.
   tl.fromTo(
-    '.title',
-    { y: 700, opacity: 0 },
-    { y: 0, opacity: 1, duration: 1, ease: 'elastic.out(1,0.5)' },
+    title,
+    { y: 100, opacity: 0, scale: 0 },
+    {
+      y: 0,
+      opacity: 1,
+      duration: 1.6,
+      stagger: 0.6,
+      delay: 1,
+      scale: 1,
+      ease: 'elastic.out(1,0.4)',
+    },
+    '-=0.5',
   );
 
   tl.fromTo(
@@ -55,84 +69,55 @@ onMounted(() => {
 </script>
 
 <template>
-  <q-page class="flex column items-center">
+  <q-page class="flex column items-center justify-center">
     <!-- Tela inicial -->
-    <div class="flex column items-center">
-      <h1
-        class="text-black text-bold m-none text-center text-h2 md:text-h1 title"
-        style="text-shadow: 1px 1px 10px #fff"
+    <div class="flex column items-center" style="margin-top: -200px">
+      <h1 class="text-blue-3 m-none text-center title bunguee-regular text-shadow">MEMORIX</h1>
+
+      <q-btn
+        icon="play_arrow"
+        class="bg-cyan-3 text-black q-mb-xl rounded-full shadow-sm animate-button"
+        style="width: 100px; height: 100px"
+        size="xl"
+        rounded
+        @click="onStartGame"
+        @mouseenter="audioMouseHover()"
+      />
+
+      <div v-if="useUser.getUser == null" class="animate-button">
+        <BtnLoginGoogle />
+      </div>
+
+      <q-btn
+        label="Tutorial"
+        rounded
+        icon="school"
+        class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm animate-button"
+        @click="modalSchool = !modalSchool"
+        @mouseenter="audioMouseHover()"
+      />
+
+      <q-btn
+        v-if="useUser.getUser !== null"
+        rounded
+        class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm animate-button"
+        @click="modalRanking = !modalRanking"
+        @mouseenter="audioMouseHover()"
       >
-        Jogo da memória
-      </h1>
-
-      <div class="animate-button">
-        <q-btn
-          icon="play_arrow"
-          class="bg-cyan-3 text-black q-mb-sm rounded-full shadow-sm"
-          style="width: 100px; height: 100px"
-          size="xl"
-          rounded
-          @click="onStartGame"
-          @mouseenter="audioMouseHover()"
-        />
-      </div>
-
-      <div v-if="useUser.getUser == null" class="flex column gap-4 q-my-xl">
-        <div class="animate-button">
-          <BtnLoginGoogle />
+        <div class="flex items-center" style="gap: 10px">
+          <q-icon name="leaderboard" size="1.5rem"></q-icon>
+          <p class="no-margin">classificação</p>
         </div>
-      </div>
+      </q-btn>
 
-      <section style="max-width: 200px" class="flex justify-center items-center">
-        <div class="animate-button">
-          <q-btn
-            label="Tutorial"
-            rounded
-            icon="school"
-            class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm"
-            @click="modalSchool = !modalSchool"
-            @mouseenter="audioMouseHover()"
-          />
-        </div>
-
-        <div class="animate-button">
-          <q-btn
-            label="configurações"
-            rounded
-            icon="settings"
-            class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm"
-            @click="modalSettings = !modalSettings"
-            @mouseenter="audioMouseHover()"
-          />
-        </div>
-
-        <template v-if="useUser.getUser !== null">
-          <div class="animate-button">
-            <q-btn
-              rounded
-              class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm"
-              @click="modalRanking = !modalRanking"
-              @mouseenter="audioMouseHover()"
-            >
-              <div class="flex items-center" style="gap: 10px">
-                <q-icon name="leaderboard" size="1.5rem"></q-icon>
-                <p class="no-margin">classificação</p>
-              </div>
-            </q-btn>
-          </div>
-        </template>
-
-        <div class="animate-button">
-          <q-btn
-            icon="copyright"
-            label="Créditos"
-            rounded
-            class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm"
-            @click="modalCredits = !modalCredits"
-            @mouseenter="audioMouseHover()"
-          />
-        </div>
-      </section>
+      <q-btn
+        icon="copyright"
+        label="Créditos"
+        rounded
+        class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm animate-button"
+        @click="modalCredits = !modalCredits"
+        @mouseenter="audioMouseHover()"
+      />
 
       <p class="createdBy font-black text-white text-bold fixed-bottom-right q-ma-md">
         Created by: Flávio Leonardo
@@ -146,3 +131,13 @@ onMounted(() => {
     <ModalCredits v-if="modalCredits" v-model="modalCredits" />
   </q-page>
 </template>
+
+<style scoped lang="scss">
+.title {
+  font-size: 4rem;
+
+  @media only screen and (max-width: 900px) {
+    font-size: 3rem;
+  }
+}
+</style>

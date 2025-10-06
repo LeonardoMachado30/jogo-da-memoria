@@ -33,7 +33,7 @@ const loginWithGoogle = async () => {
     rounded
     @mouseenter="audioMouseHover()"
   >
-    <span>{{ loading ? 'Entrando...' : 'Entrar com Google' }}</span>
+    {{ loading ? 'Entrando...' : 'Entrar com Google' }}
   </q-btn>
 </template>
 
@@ -41,7 +41,6 @@ const loginWithGoogle = async () => {
 .google-login-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
   background-color: white;
   border: 1px solid #ddd;
   cursor: pointer;

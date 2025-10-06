@@ -145,7 +145,9 @@ export const useUserStore = defineStore('user', {
 
         this.user = null;
         localStorage.removeItem('user');
-        await router.push('/');
+        if (router) {
+          await router.push('/');
+        }
       } catch (error) {
         console.error('Erro ao fazer logout:', error);
       }

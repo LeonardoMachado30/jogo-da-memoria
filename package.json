@@ -20,6 +20,7 @@
     "test:component:ci": "cross-env NODE_ENV=test TS_NODE_PROJECT=test/cypress/tsconfig.json cypress run --component"
   },
   "dependencies": {
+    "@lottiefiles/dotlottie-vue": "^0.10.4",
     "@quasar/extras": "^1.16.4",
     "axios": "^1.2.1",
     "firebase": "^11.6.1",

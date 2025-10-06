@@ -1,3 +1,4 @@
+@import url('./font.scss');
 // app global css in SCSS form
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=trophy&icon_names=trophy');
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Sansation:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Tagesschrift&display=swap');
@@ -169,4 +170,22 @@ body.body--dark {
 
 .shadow-none {
   box-shadow: none !important;
+}
+
+.shadow-neon {
+  box-shadow:
+    0 0 8px #0ff,
+    0 0 16px #0ff,
+    0 0 32px #0ff,
+    0 0 30px #0ff,
+    0 0 120px #0ff;
+  border-color: #0ff;
+}
+
+.text-shadow {
+  text-shadow:
+    0 0 1px #fff,
+    0 0 5px #0ff,
+    0 0 0px #0ff;
+  color: #67e8f9;
 }

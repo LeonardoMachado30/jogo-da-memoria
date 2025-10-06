@@ -4,6 +4,7 @@ import { useAudio } from 'src/composables/useAudio';
 import { useUserStore } from 'src/stores/user-store';
 import timer, { formattedTime, resetTimer, resetTimerStart } from 'src/composables/useTimer';
 import { randomImagesEmojis, randomImagesFruits } from 'src/model/images';
+import levelsConfig from 'src/utils/levelsConfig';
 
 interface Images {
   src: string;
@@ -16,7 +17,7 @@ interface LevelConfig {
   pairs: number;
   color: string;
   textColor: string;
-  deck: 'default' | 'hard';
+  deck: string;
 }
 
 interface CardRef {
@@ -28,17 +29,21 @@ interface State {
   pulseTimerList: string[];
   attemptCounter: number;
   initialFlip: boolean;
-  currentGameCards: Images[];
   usedCardsIndices: Set<number>;
   availableCards: Images[];
   levelsConfig: LevelConfig[];
-  game: { currentLevel: number };
-  gameStartTime: number;
-  gameEndTime: number;
+  game: {
+    currentLevel: number;
+    currentScore: number;
+    startTime: number;
+    endTime: number;
+  };
   flippedStatus: boolean[];
   lockBoard: boolean;
   flippedCards: FlippedCard[];
   cardRefs: (CardRef | null)[];
+  cards: Images[];
+  isGameInitialized: boolean;
 }
 
 export interface FlippedCard {
@@ -51,101 +56,22 @@ export const useGameStore = defineStore('game', {
     currentScore: 0,
     pulseTimerList: ['01:30', '01:00', '00:30'],
     attemptCounter: 0,
-    gameStartTime: 0,
-    gameEndTime: 0,
     initialFlip: false,
     lockBoard: false,
     flippedStatus: [],
     flippedCards: [],
     cardRefs: [],
-    currentGameCards: [],
     usedCardsIndices: new Set<number>(),
     availableCards: [...randomImagesEmojis],
-    levelsConfig: [
-      {
-        level: 1,
-        gridSize: 4,
-        pairs: 8,
-        color: 'green-6',
-        textColor: 'white',
-        deck: 'default',
-      },
-      {
-        level: 2,
-        gridSize: 4,
-        pairs: 10,
-        color: 'amber-6',
-        textColor: 'white',
-        deck: 'default',
-      },
-      {
-        level: 3,
-        gridSize: 5,
-        pairs: 10,
-        color: 'red-6',
-        textColor: 'white',
-        deck: 'default',
-      },
-      {
-        level: 4,
-        gridSize: 5,
-        pairs: 12,
-        color: 'blue-6',
-        textColor: 'white',
-        deck: 'default',
-      },
-      {
-        level: 5,
-        gridSize: 6,
-        pairs: 12,
-        color: 'purple-6',
-        textColor: 'white',
-        deck: 'default',
-      },
-      {
-        level: 6,
-        gridSize: 5,
-        pairs: 15,
-        color: 'deep-orange-6',
-        textColor: 'white',
-        deck: 'hard',
-      },
-      {
-        level: 7,
-        gridSize: 6,
-        pairs: 15,
-        color: 'teal-6',
-        textColor: 'white',
-        deck: 'hard',
-      },
-      {
-        level: 8,
-        gridSize: 6,
-        pairs: 18,
-        color: 'indigo-6',
-        textColor: 'white',
-        deck: 'hard',
-      },
-      {
-        level: 9,
-        gridSize: 4,
-        pairs: 12,
-        color: 'pink-6',
-        textColor: 'white',
-        deck: 'hard',
-      },
-      {
-        level: 10,
-        gridSize: 6,
-        pairs: 18,
-        color: 'black',
-        textColor: 'yellow-4',
-        deck: 'hard',
-      },
-    ],
+    isGameInitialized: false,
+    levelsConfig: levelsConfig,
     game: {
       currentLevel: 1,
+      currentScore: 0,
+      startTime: 0,
+      endTime: 0,
     },
+    cards: [],
   }),
 
   getters: {
@@ -164,15 +90,15 @@ export const useGameStore = defineStore('game', {
       return pairs * 2;
     },
 
-    levelCardSet(state): Images[] {
-      return state.currentGameCards;
-    },
-
     gameDuration(state): number | null {
-      if (state.gameStartTime !== null && state.gameEndTime !== null) {
-        return state.gameEndTime - state.gameStartTime;
+      if (state.game.startTime !== null && state.game.endTime !== null) {
+        return state.game.endTime - state.game.startTime;
       }
       return null;
+    },
+
+    isLevelComplete(state): boolean {
+      return state.flippedStatus.every((status) => status === true);
     },
   },
 
@@ -191,110 +117,132 @@ export const useGameStore = defineStore('game', {
     },
 
     /**
-     * Seleciona cartas únicas que não foram usadas anteriormente
+     * Cria pares de cartas aleatórias
      */
-    selectUniqueCards(pairsNeeded: number): Images[] {
-      // Se não há cartas disponíveis suficientes, reseta o pool
-      if (this.availableCards.length < pairsNeeded) {
-        this.resetCardPool();
-      }
-
-      // Pega as primeiras N cartas disponíveis
-      const selectedCards = this.availableCards.slice(0, pairsNeeded);
-
-      // Remove as cartas selecionadas do pool disponível
-      this.availableCards = this.availableCards.slice(pairsNeeded);
-
-      return selectedCards;
-    },
-
-    /**
-     * Reseta o pool de cartas disponíveis e embaralha
-     */
-    resetCardPool(): void {
-      this.availableCards = this.shuffleArray([...randomImagesEmojis]);
-      this.usedCardsIndices.clear();
-    },
-
-    // 2. Função Principal: Cria Pares de Cartas Aleatórias
     createRandomPairs(allCards: Images[], numberOfPairs: number): Images[] {
-      // Passo 1: Seleção Aleatória de Cartas (Sem Repetição)
-      // Faz uma cópia do array de cartas e o embaralha
       const shuffledOriginalCards = this.shuffleArray(allCards);
-
-      // Pega o número necessário de cartas do topo (as primeiras 'numberOfPairs' cartas)
-      // Isso garante que são cartas únicas e aleatórias
       const selectedCards = shuffledOriginalCards.slice(0, numberOfPairs);
-
-      // Passo 2: Criação dos Pares
-      // Duplica cada carta selecionada
       const pairedCards = selectedCards.flatMap((card) => [card, card]);
-
-      // Passo 3: Embaralhamento Final
-      // Embaralha o array de pares para garantir que não estejam em ordem previsível
-      const finalShuffledPairs = this.shuffleArray(pairedCards);
-
-      return finalShuffledPairs;
+      return this.shuffleArray(pairedCards);
     },
 
     /**
      * Gera o conjunto de cartas para o nível atual
      */
-    generateLevelCards(): void {
+    generateLevelCards(): Images[] {
       const deckChoose = this.currentConfig;
-      let selectDeck = randomImagesFruits;
-
-      if (deckChoose.deck === 'hard') {
-        selectDeck = randomImagesEmojis;
-      }
-
+      const selectDeck = deckChoose.deck === 'hard' ? randomImagesEmojis : randomImagesFruits;
       const gameCards = this.createRandomPairs(selectDeck, deckChoose.pairs);
-      this.currentGameCards = gameCards;
+      this.cards = gameCards;
+      return gameCards;
     },
 
     /**
-     * Troca o tema de cartas (frutas/emojis)
+     * Reseta completamente o estado do nível
      */
-    changeCardTheme(theme: 'emojis' | 'fruits'): void {
-      const sourceCards = theme === 'emojis' ? randomImagesEmojis : randomImagesFruits;
-      this.availableCards = this.shuffleArray([...sourceCards]);
-      this.usedCardsIndices.clear();
-      this.generateLevelCards();
-    },
+    resetLevelState() {
+      // Reset timers
+      resetTimerStart();
+      resetTimer();
 
-    startGameEffects() {
-      const { audioCard, playMusic } = useAudio();
-      playMusic();
-      this.resetLevel();
-
-      // Gera as cartas para o nível atual
-      this.generateLevelCards();
-
+      // Reset game state
+      this.currentScore = 0;
+      this.attemptCounter = 0;
+      this.flippedCards = [];
+      this.cardRefs = [];
       this.initialFlip = false;
       this.lockBoard = true;
+      this.game.startTime = 0;
+      this.game.endTime = 0;
 
+      // Gera novas cartas
+      this.generateLevelCards();
+
+      // Reset flipped status baseado no novo total de cartas
+      this.flippedStatus = Array(this.totalCards).fill(false);
+
+      this.isGameInitialized = false;
+    },
+
+    /**
+     * Inicializa o jogo para o nível atual
+     */
+    initializeLevel(level: number) {
+      this.game.currentLevel = level;
+      this.resetLevelState();
+    },
+
+    /**
+     * Inicia o jogo com animações e timers
+     */
+    async startGameSequence() {
+      const { playMusic } = useAudio();
+
+      // Garante que o jogo está resetado
+      if (!this.isGameInitialized) {
+        this.lockBoard = true;
+        this.initialFlip = false;
+        playMusic();
+
+        // Aguarda um frame para garantir que o DOM foi atualizado
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        this.isGameInitialized = true;
+      }
+    },
+
+    /**
+     * Inicia a fase de memorização (flip inicial)
+     */
+    startMemorizationPhase() {
+      const { audioCard } = useAudio();
+
+      this.game.startTime = Date.now();
+      audioCard();
+      this.initialFlip = true;
+      timer().mountedStart();
+
+      // Após 5 segundos, volta as cartas e inicia o jogo
       setTimeout(() => {
-        this.gameStartTime = Date.now();
-        audioCard();
-        this.initialFlip = true;
-        timer().mountedStart();
+        this.endMemorizationPhase();
+      }, 5000);
+    },
 
-        setTimeout(() => {
-          audioCard();
-          this.initialFlip = false;
-          timer().mounted();
-          setTimeout(() => {
-            this.lockBoard = false;
-          }, 1000);
-        }, 5000);
-      }, 600);
+    /**
+     * Termina a fase de memorização e inicia o jogo
+     */
+    endMemorizationPhase() {
+      const { audioCard } = useAudio();
+
+      audioCard();
+      this.initialFlip = false;
+      timer().unmountedStart();
+      timer().mounted();
+      this.lockBoard = false;
+    },
+
+    /**
+     * Próximo nível
+     */
+    nextLevel() {
+      const nextLevel = this.game.currentLevel + 1;
+      if (nextLevel <= this.levelsConfig.length) {
+        this.initializeLevel(nextLevel);
+      }
+    },
+
+    /**
+     * Reinicia o nível atual
+     */
+    restartLevel() {
+      this.initializeLevel(this.game.currentLevel);
     },
 
     async endGame() {
       const useUser = useUserStore();
       if (useUser.getUser) {
-        this.gameEndTime = Date.now();
-        const totalTime = this.gameTimeConvertForMinutes(this.gameStartTime, this.gameEndTime);
+        this.game.endTime = Date.now();
+        const totalTime = this.gameTimeConvertForMinutes(this.game.startTime, this.game.endTime);
 
         if (useUser.getUser?.uid) {
           await useUser.updateRanking(useUser.getUser.uid, {
@@ -319,20 +267,6 @@ export const useGameStore = defineStore('game', {
       if (formattedTime >= '00:20') return 2;
       if (formattedTime >= '00:05') return 1;
       return 0;
-    },
-
-    resetLevel() {
-      this.currentScore = 0;
-      this.attemptCounter = 0;
-      this.flippedCards = [];
-      this.cardRefs = [];
-      resetTimer();
-      resetTimerStart();
-      this.setFlippedStatus();
-    },
-
-    setFlippedStatus() {
-      this.flippedStatus = Array(this.totalCards).fill(false);
     },
 
     onFlip({ index, alt }: FlippedCard): void {

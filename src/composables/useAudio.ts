@@ -70,11 +70,6 @@ function audioCard() {
 
 function audioCongratulation() {
   const audio = audioCreate('audio/crowd-cheer-ii-6263.mp3');
-  pauseMusic();
-
-  setTimeout(() => {
-    playMusic();
-  }, 3000);
   return audio;
 }
 

@@ -32,6 +32,7 @@ const changeVolume = () => {
     :icon="isPlaying ? 'volume_up' : 'volume_down'"
     round
     color="black"
+    class="q-mr-md"
   />
   <!-- <q-btn
     :icon="Dark.isActive ? 'dark_mode' : 'light_mode'"

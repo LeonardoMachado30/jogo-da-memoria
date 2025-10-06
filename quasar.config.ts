@@ -173,8 +173,8 @@ export default defineConfig((ctx) => {
       useCredentialsForManifestTag: false,
 
       manifest: {
-        name: 'Jogo da Memória',
-        short_name: 'Memória',
+        name: 'Memorix',
+        short_name: 'Mx',
         description: 'Jogo da memória divertido e desafiador',
         display: 'standalone',
         orientation: 'portrait',

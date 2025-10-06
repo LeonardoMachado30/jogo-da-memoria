@@ -12,6 +12,7 @@ const props = defineProps<{
   index: number;
   flippedExternally: boolean;
   locked: boolean;
+  cardColor?: string;
 }>();
 
 const emit = defineEmits<{
@@ -50,12 +51,12 @@ defineExpose({
 <template>
   <div
     class="card-container"
-    :class="flipClass"
+    :class="[flipClass]"
     @click="toggleFlip"
     style="border: 5px; border-color: blue"
   >
     <div class="card-inner">
-      <div class="card-face card-back"></div>
+      <div class="card-face card-back" :class="props.cardColor"></div>
       <div class="card-face card-front">
         <img
           :src="props.card.src"

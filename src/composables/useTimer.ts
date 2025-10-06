@@ -55,10 +55,10 @@ export default function timer() {
     }, 1000);
   };
 
-  const unmounted = () => {
+  const unmountedStart = () => {
     clearInterval(timeOut as NodeJS.Timeout);
     clearInterval(timerStart as NodeJS.Timeout);
   };
 
-  return { mounted, mountedStart, unmounted, isTimeOver };
+  return { mounted, mountedStart, unmountedStart, isTimeOver };
 }
