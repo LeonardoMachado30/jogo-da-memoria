@@ -37,6 +37,7 @@ interface State {
     currentScore: number;
     startTime: number;
     endTime: number;
+    acumulativeAccepts: number;
   };
   flippedStatus: boolean[];
   lockBoard: boolean;
@@ -70,6 +71,7 @@ export const useGameStore = defineStore('game', {
       currentScore: 0,
       startTime: 0,
       endTime: 0,
+      acumulativeAccepts: 0,
     },
     cards: [],
   }),
@@ -261,11 +263,16 @@ export const useGameStore = defineStore('game', {
     },
 
     calculateScore(formattedTime: string): number {
+      if (this.game.acumulativeAccepts) {
+        return 10;
+      }
+
       if (formattedTime >= '00:50') return 5;
       if (formattedTime >= '00:40') return 4;
       if (formattedTime >= '00:30') return 3;
       if (formattedTime >= '00:20') return 2;
       if (formattedTime >= '00:05') return 1;
+
       return 0;
     },
 
@@ -283,6 +290,7 @@ export const useGameStore = defineStore('game', {
         if (first && second) {
           if (first.alt === second.alt) {
             // Par encontrado
+            this.game.acumulativeAccepts = 0;
             this.flippedStatus[first.index] = true;
             this.flippedStatus[second.index] = true;
             this.flippedCards = [];
@@ -291,6 +299,7 @@ export const useGameStore = defineStore('game', {
             resetTimer();
             useAudio().audioPair();
           } else {
+            this.game.acumulativeAccepts = this.game.acumulativeAccepts + 1;
             // Par errado
             setTimeout(() => {
               this.cardRefs[first.index]?.flipDown();

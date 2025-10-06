@@ -16,6 +16,7 @@ const { playMusic, pauseMusic } = useAudio();
 const showModalSchool = ref(false);
 
 const isHome = computed(() => route.fullPath === '/');
+const isParty = computed(() => route.query.level);
 
 function clickPage() {
   const isPauseMusic = localStorage.getItem('isPauseMusic');
@@ -26,23 +27,21 @@ function clickPage() {
   }
 }
 
+function resetLevel() {
+  window.location.reload();
+}
+
 onMounted(() => {
   document.addEventListener('click', clickPage);
-
-  // window.addEventListener('focus', clickPage);
-
-  // window.addEventListener('blur', clickPage);
 });
 
 onUnmounted(() => {
-  // window.removeEventListener('focus', clickPage);
-  // window.removeEventListener('blur', clickPage);
+  document.removeEventListener('click', clickPage);
 });
 </script>
 
 <template>
   <q-layout view="lHh Lpr lFf" class="main-layout-blur">
-    <!-- Camada de background com blur -->
     <q-img
       src="background/tela-inicial.png"
       class="background-blur"
@@ -52,7 +51,6 @@ onUnmounted(() => {
       no-spinner
     ></q-img>
 
-    <!-- Conteúdo principal acima do background -->
     <div class="main-layout-content">
       <q-header class="bg-transparent text-principal q-py-md q-px-lg">
         <div
@@ -60,11 +58,17 @@ onUnmounted(() => {
           :class="[isHome ? 'justify-end' : 'justify-between']"
           style="max-width: 900px"
         >
-          <div v-if="!isHome" class="flex" style="gap: 10px">
-            <q-btn icon="arrow_back" round color="black" to="/" />
-          </div>
+          <q-btn v-if="!isHome" icon="arrow_back" round color="black" to="/" />
 
           <div>
+            <q-btn
+              v-if="isParty"
+              icon="history"
+              round
+              color="black"
+              @click="resetLevel"
+              class="q-mr-md"
+            />
             <ModalSettings></ModalSettings>
 
             <q-btn round push v-if="getUser?.photoURL">

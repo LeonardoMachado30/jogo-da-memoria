@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { useAudio } from 'src/composables/useAudio';
+// import { useGameStore } from 'src/stores/game-store';
+// import { useRoute, useRouter } from 'vue-router';
 // import { Dark } from 'quasar';
 // import ModalDefault from 'components/organisms/ModalDefault.vue';
 
 // const modelValue = defineModel({ default: false });
-
+// const gameStore = useGameStore();
+// const router = useRouter();
+// const route = useRoute();
 const { pauseMusic, playMusic, isPlaying } = useAudio();
 
 const changeVolume = () => {
@@ -14,7 +18,6 @@ const changeVolume = () => {
     playMusic();
   }
 };
-
 // const toggleDark = () => {
 //   Dark.toggle();
 // };
