@@ -1,55 +1,60 @@
 <script setup lang="ts">
-import { useAudio } from 'src/composables/useAudio';
+// import { useAudio } from 'src/composables/useAudio';
 import { useUserStore } from 'stores/user-store';
 import { storeToRefs } from 'pinia';
 import { useRoute } from 'vue-router';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, ref, watch, nextTick, onMounted } from 'vue';
 import ModalSettings from 'components/organisms/ModalSettings.vue';
 import ModalTutorial from 'components/organisms/ModalTutorial.vue';
+import gsap from 'gsap';
 
 const route = useRoute();
 const useUser = useUserStore();
 const { getUser } = storeToRefs(useUser);
 
-const { playMusic, pauseMusic } = useAudio();
+// const { playMusic, pauseMusic } = useAudio();
 
 const showModalSchool = ref(false);
 
 const isHome = computed(() => route.fullPath === '/');
 const isParty = computed(() => route.query.level);
 
-function clickPage() {
-  const isPauseMusic = localStorage.getItem('isPauseMusic');
-  if (isPauseMusic == 'false') {
-    playMusic();
-  } else {
-    pauseMusic();
-  }
+const backgroundRef = ref<HTMLElement | null>(null);
+
+// Função para animar o background usando GSAP
+function animateBackground(isHomeValue: boolean) {
+  if (!backgroundRef.value) return;
+  gsap.to(backgroundRef.value, {
+    scale: isHomeValue ? 1 : 30,
+    filter: isHomeValue ? 'blur(1px) brightness(1)' : 'blur(8px) brightness(0.7)',
+    duration: 1.6,
+    ease: 'power3.inOut',
+    borderRadius: isHomeValue ? '0%' : '30%',
+    // Metamórfica: arredonda e distorce um pouco ao sair da home
+    boxShadow: isHomeValue ? '0 0 0px 0px rgba(0,0,0,0)' : '0 0 120px 40px rgba(0,0,0,0.25)',
+  });
 }
+
+// Observa mudanças de rota para animar a transição do background
+watch(isHome, async (novo) => {
+  await nextTick();
+  animateBackground(novo);
+});
+
+// Garante que ao montar já esteja no estado correto
+onMounted(() => {
+  animateBackground(isHome.value);
+});
 
 function resetLevel() {
   window.location.reload();
 }
-
-onMounted(() => {
-  document.addEventListener('click', clickPage);
-});
-
-onUnmounted(() => {
-  document.removeEventListener('click', clickPage);
-});
 </script>
 
 <template>
   <q-layout view="lHh Lpr lFf" class="main-layout-blur">
-    <q-img
-      src="background/tela-inicial.png"
-      class="background-blur"
-      :class="{ 'background-blur--home': isHome, 'background-blur--other': !isHome }"
-      alt="tela de fundo"
-      fetchpriority="high"
-      no-spinner
-    ></q-img>
+    <!-- Transição de background usando GSAP -->
+    <div ref="backgroundRef" class="background-blur" alt="tela de fundo"></div>
 
     <div class="main-layout-content">
       <q-header class="bg-transparent text-principal q-py-md q-px-lg">
@@ -123,15 +128,13 @@ onUnmounted(() => {
   z-index: 0;
   filter: blur(1px) brightness(1);
   object-fit: cover !important;
-  transition: transform 2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.background-blur--home {
-  transform: scale(2.3);
-}
-
-.background-blur--other {
-  transform: scale(1);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-image: url(background/tela-inicial.png);
+  will-change: transform, filter, border-radius, box-shadow;
+  /* O scale será controlado pelo GSAP */
+  /* Transições suaves e metamórficas via GSAP */
 }
 
 .main-layout-content {

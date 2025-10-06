@@ -65,6 +65,8 @@ onMounted(() => {
     { y: 0, opacity: 1, duration: 1, ease: 'elastic.out(1,0.3)' },
     '-=0.8',
   );
+
+  // gsap.fromTo('.background-blur', { scale: 1 }, { scale: 50 });
 });
 </script>
 
