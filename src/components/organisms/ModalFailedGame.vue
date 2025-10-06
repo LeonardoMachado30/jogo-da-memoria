@@ -30,7 +30,7 @@ watch(
 <template>
   <ModalDefault
     v-model="modelValue"
-    class-body="flex column items-center text-center q-px-lg"
+    class-body="flex column items-center text-center q-px-lg bg-transparent"
     class-actions="flex justify-center"
     persistent
   >
@@ -48,21 +48,21 @@ watch(
 
     <template #actions>
       <q-btn
-        to="/"
-        label="Selecionar Nível"
+        label="Jogar Novamente"
         text-color="black"
-        color="cyan-6"
-        icon="reset_settings"
+        color="white"
+        icon="history"
         @click="resetLeve"
         v-close-popup
         class="rounded-lg full-width q-mb-sm"
       />
 
       <q-btn
-        label="Jogar Novamente"
+        to="/"
+        label="Selecionar Nível"
         text-color="black"
-        color="white"
-        icon="reset"
+        color="cyan-6"
+        icon="menu"
         @click="resetLeve"
         v-close-popup
         class="rounded-lg full-width"

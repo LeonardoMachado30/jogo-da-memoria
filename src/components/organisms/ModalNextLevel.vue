@@ -26,7 +26,6 @@ const useGame = useGameStore();
 const { currentScore, game, attemptCounter } = storeToRefs(useGame);
 
 const starsArray = ref<number[]>(Array.from({ length: props.starsCount }, (_, i) => i + 1));
-// const showStars = ref(false);
 
 async function nextLevel() {
   audioCongratulation().pause();
