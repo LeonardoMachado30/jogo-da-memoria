@@ -184,7 +184,9 @@ onMounted(() => {
       />
     </div>
 
-    <div class="flex justify-around text-blue text-weight-bolder text-body1 q-px-md q-mb-xl row">
+    <div
+      class="flex justify-around items-center text-blue text-weight-bolder text-body1 q-mb-xl row"
+    >
       <p class="stat-box">Nivel: {{ game.currentLevel }}</p>
       <p class="stat-box">Pontuação: {{ currentScore }}</p>
       <p class="stat-box">Tentativas: {{ attemptCounter }}</p>
@@ -234,10 +236,9 @@ onMounted(() => {
 }
 
 .stat-box {
-  background-color: white;
-  border-radius: 12px;
-  padding: 10px;
-  box-shadow: 2px 0px 6px #000;
+  color: white;
+  border-radius: 4px;
+  // box-shadow: 2px 0px 6px #000;
 }
 
 .counter {

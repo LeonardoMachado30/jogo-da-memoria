@@ -34,7 +34,8 @@ const changeVolume = () => {
     @click="changeVolume"
     :icon="isPlaying ? 'volume_up' : 'volume_down'"
     round
-    color="black"
+    color="white"
+    :text-color="isPlaying ? 'black' : 'grey'"
     class="q-mr-md"
   />
   <!-- <q-btn

@@ -58,16 +58,24 @@ onUnmounted(() => {
           :class="[isHome ? 'justify-end' : 'justify-between']"
           style="max-width: 900px"
         >
-          <q-btn v-if="!isHome" icon="arrow_back" round color="black" to="/" />
+          <q-btn
+            v-if="!isHome"
+            icon="keyboard_arrow_left"
+            round
+            color="white"
+            text-color="black"
+            to="/"
+          />
 
           <div>
             <q-btn
               v-if="isParty"
               icon="history"
               round
-              color="black"
               @click="resetLevel"
               class="q-mr-md"
+              color="white"
+              text-color="black"
             />
             <ModalSettings></ModalSettings>
 
