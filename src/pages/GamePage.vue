@@ -184,16 +184,16 @@ onMounted(() => {
       />
     </div>
 
-    <div
-      class="flex justify-around items-center text-blue text-weight-bolder text-body1 q-mb-xl row"
-    >
+    <div class="flex justify-around items-center text-blue text-weight-bolder text-body1 row">
       <p class="stat-box">Nivel: {{ game.currentLevel }}</p>
+      |
       <p class="stat-box">Pontuação: {{ currentScore }}</p>
+      |
       <p class="stat-box">Tentativas: {{ attemptCounter }}</p>
-      <p :key="pulseKey" class="stat-box">
-        {{ initialFlip ? formattedTimeStart : formattedTime }}
-      </p>
     </div>
+    <p :key="pulseKey" class="stat-box text-center text-weight-bolder text-h4">
+      {{ initialFlip ? formattedTimeStart : formattedTime }}
+    </p>
 
     <div class="--grid" :style="{ gridTemplateColumns: `repeat(${gridSize}, minmax(20px, 1fr))` }">
       <template v-for="(card, index) in cards" :key="`${game.currentLevel}-${index}`">
