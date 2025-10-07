@@ -131,7 +131,7 @@ function resetLevel() {
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  background-image: url(background/tela-inicial.png);
+  background-image: url(/background/tela-inicial.png);
   will-change: transform, filter, border-radius, box-shadow;
   /* O scale será controlado pelo GSAP */
   /* Transições suaves e metamórficas via GSAP */
