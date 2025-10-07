@@ -8,7 +8,7 @@
 declare const self: ServiceWorkerGlobalScope &
   typeof globalThis & {
     skipWaiting: () => void;
-    __WB_MANIFEST: any;
+    __WB_MANIFEST: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     clients: Clients;
   };
 
@@ -23,7 +23,7 @@ import { registerRoute, NavigationRoute } from 'workbox-routing';
 /* 🚀 Força o service worker a ser ativado imediatamente após instalação */
 self.addEventListener('install', () => {
   console.log('[SW] Instalando nova versão...');
-  self.skipWaiting();
+  void self.skipWaiting();
 });
 
 /* 🚀 Garante que o novo SW assume controle das abas imediatamente */
@@ -34,9 +34,9 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
 
 /* 🔄 Escuta mensagens vindas do app (frontend) para atualização manual */
 self.addEventListener('message', (event: ExtendableMessageEvent) => {
-  if (event.data && (event.data as any).type === 'SKIP_WAITING') {
+  if (event.data && (event.data.type as string) === 'SKIP_WAITING') {
     console.log('[SW] Forçando atualização via mensagem...');
-    self.skipWaiting();
+    void self.skipWaiting();
   }
 });
 
