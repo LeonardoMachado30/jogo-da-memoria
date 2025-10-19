@@ -30,8 +30,11 @@ function pauseMusic() {
 }
 
 function toggleMusic() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  isPlaying.value ? pauseMusic() : playMusic();
+  if (isPlaying.value) {
+    pauseMusic();
+  } else {
+    playMusic();
+  }
 }
 
 function setVolume(newVolume: number) {

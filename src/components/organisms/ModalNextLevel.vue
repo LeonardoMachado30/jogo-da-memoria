@@ -6,26 +6,20 @@ import { useAudio } from 'src/composables/useAudio';
 import ModalDefault from 'components/organisms/ModalDefault.vue';
 import { starAnimation } from 'src/animations/star';
 import { useRoute, useRouter } from 'vue-router';
-import levelsConfig from 'src/utils/levelsConfig';
+
+const useGame = useGameStore();
+const { currentScore, game, attemptCounter, levelsConfig } = storeToRefs(useGame);
 
 const router = useRouter();
 const route = useRoute();
 
 const modelValue = defineModel('showModal', { default: false });
 
-const props = defineProps({
-  starsCount: {
-    type: Number,
-    default: levelsConfig.length,
-    validator: (value: number) => value >= 1 && value <= levelsConfig.length,
-  },
-});
+const starsCount = ref(levelsConfig.value.length);
 
 const { audioCongratulation } = useAudio();
-const useGame = useGameStore();
-const { currentScore, game, attemptCounter } = storeToRefs(useGame);
 
-const starsArray = ref<number[]>(Array.from({ length: props.starsCount }, (_, i) => i + 1));
+const starsArray = ref<number[]>(Array.from({ length: starsCount.value }, (_, i) => i + 1));
 
 async function nextLevel() {
   audioCongratulation().pause();

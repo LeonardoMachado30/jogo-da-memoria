@@ -1,7 +1,7 @@
 import gsap from 'gsap';
 
 export function distributeCardsAnimation(
-  { card, index, containerRect, centerX, centerY }: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+  { card, index, containerRect, centerX, centerY }: any,
   callbackAnimation: () => void,
 ) {
   const cardRect = card.getBoundingClientRect();
@@ -53,7 +53,7 @@ export function flipCardAnimation(
   }
 
   // Armazena as animações para poder dar reverse depois
-  const animacoes: any = []; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const animacoes: any = [];
 
   cards.forEach((card) => {
     const anim = gsap.to(card, {

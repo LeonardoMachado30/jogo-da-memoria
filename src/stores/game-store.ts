@@ -4,14 +4,15 @@ import { useAudio } from 'src/composables/useAudio';
 import { useUserStore } from 'src/stores/user-store';
 import timer, { formattedTime, resetTimer, resetTimerStart } from 'src/composables/useTimer';
 import { randomImagesEmojis, randomImagesFruits } from 'src/model/images';
-import levelsConfig from 'src/utils/levelsConfig';
+import { ref as dbRef, get, set, update } from 'firebase/database';
+import { db } from 'src/boot/firebase';
 
 interface Images {
   src: string;
   alt: string;
 }
 
-interface LevelConfig {
+export interface Level {
   level: number;
   gridSize: number;
   pairs: number;
@@ -31,7 +32,7 @@ interface State {
   initialFlip: boolean;
   usedCardsIndices: Set<number>;
   availableCards: Images[];
-  levelsConfig: LevelConfig[];
+  levelsConfig: Level[] | [];
   game: {
     currentLevel: number;
     currentScore: number;
@@ -65,7 +66,7 @@ export const useGameStore = defineStore('game', {
     usedCardsIndices: new Set<number>(),
     availableCards: [...randomImagesEmojis],
     isGameInitialized: false,
-    levelsConfig: levelsConfig,
+    levelsConfig: [],
     game: {
       currentLevel: 1,
       currentScore: 0,
@@ -77,9 +78,9 @@ export const useGameStore = defineStore('game', {
   }),
 
   getters: {
-    currentConfig(state): LevelConfig {
-      const found = state.levelsConfig.find((cfg) => cfg.level === state.game.currentLevel);
-      return found ?? (state.levelsConfig[0] as LevelConfig);
+    currentConfig(state): Level {
+      const found = state.levelsConfig.find((cfg: any) => cfg.level === state.game.currentLevel);
+      return found ?? (state.levelsConfig[0] as Level);
     },
 
     gridSize(state): number {
@@ -112,7 +113,6 @@ export const useGameStore = defineStore('game', {
       const newArr = [...array];
       for (let i = newArr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         [newArr[i] as any, newArr[j] as any] = [newArr[j], newArr[i]];
       }
       return newArr;
@@ -318,6 +318,81 @@ export const useGameStore = defineStore('game', {
       const minutos = Math.floor(totalSeconds / 60);
       const segundos = totalSeconds % 60;
       return `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+    },
+
+    async setLevel() {
+      const levelsObject = this.levelsConfig.reduce(
+        (acc, level) => {
+          acc[level.level] = level;
+          return acc;
+        },
+        {} as Record<number, (typeof this.levelsConfig)[0]>,
+      );
+
+      // Agora pode salvar no Firebase
+      await set(dbRef(db, 'levels'), levelsObject);
+      console.log('level criado com sucesso');
+    },
+
+    async getLevels(): Promise<Level[]> {
+      try {
+        const snapshot = await get(dbRef(db, 'levels'));
+
+        if (snapshot.exists()) {
+          const levelsData = snapshot.val() as Record<string, Level>;
+          const levelArr = Object.values(levelsData).sort((a, b) => a.level - b.level);
+          this.levelsConfig = levelArr;
+          return levelArr;
+        } else {
+          console.warn('Nenhum level encontrado no Firebase');
+          return [];
+        }
+      } catch (error) {
+        console.error('Erro ao obter levels:', error);
+        return [];
+      }
+    },
+    async updateLevels(levels: Level[]) {
+      try {
+        // Converte array para objeto com level como chave
+        const levelsObject = levels.reduce(
+          (acc, level) => {
+            acc[level.level] = level;
+            return acc;
+          },
+          {} as Record<number, Level>,
+        );
+
+        await set(dbRef(db, 'levels'), levelsObject);
+        console.log('Levels atualizados com sucesso');
+      } catch (error) {
+        console.error('Erro ao atualizar levels:', error);
+        throw error;
+      }
+    },
+
+    // Ou se quiser atualizar um level específico
+    async updateSingleLevel(levelNumber: number, levelData: Level) {
+      try {
+        const singleLevelRef = dbRef(db, `levels/${levelNumber}`);
+        await set(singleLevelRef, levelData);
+        console.log(`Level ${levelNumber} atualizado com sucesso`);
+      } catch (error) {
+        console.error(`Erro ao atualizar level ${levelNumber}:`, error);
+        throw error;
+      }
+    },
+
+    // Ou se quiser fazer update parcial (sem sobrescrever tudo)
+    async patchLevel(levelNumber: number, partialData: Partial<Level>) {
+      try {
+        const singleLevelRef = dbRef(db, `levels/${levelNumber}`);
+        await update(singleLevelRef, partialData);
+        console.log(`Level ${levelNumber} atualizado parcialmente`);
+      } catch (error) {
+        console.error(`Erro ao atualizar level ${levelNumber}:`, error);
+        throw error;
+      }
     },
   },
 });

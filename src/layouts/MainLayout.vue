@@ -1,56 +1,3 @@
-<script setup lang="ts">
-// import { useAudio } from 'src/composables/useAudio';
-import { useUserStore } from 'stores/user-store';
-import { storeToRefs } from 'pinia';
-import { useRoute } from 'vue-router';
-import { computed, ref, watch, nextTick, onMounted } from 'vue';
-import ModalSettings from 'components/organisms/ModalSettings.vue';
-import ModalTutorial from 'components/organisms/ModalTutorial.vue';
-import gsap from 'gsap';
-
-const route = useRoute();
-const useUser = useUserStore();
-const { getUser } = storeToRefs(useUser);
-
-// const { playMusic, pauseMusic } = useAudio();
-
-const showModalSchool = ref(false);
-
-const isHome = computed(() => route.fullPath === '/');
-const isParty = computed(() => route.query.level);
-
-const backgroundRef = ref<HTMLElement | null>(null);
-
-// Função para animar o background usando GSAP
-function animateBackground(isHomeValue: boolean) {
-  if (!backgroundRef.value) return;
-  gsap.to(backgroundRef.value, {
-    scale: isHomeValue ? 1 : 30,
-    filter: isHomeValue ? 'blur(1px) brightness(1)' : 'blur(8px) brightness(0.7)',
-    duration: 1.6,
-    ease: 'power3.inOut',
-    borderRadius: isHomeValue ? '0%' : '30%',
-    // Metamórfica: arredonda e distorce um pouco ao sair da home
-    boxShadow: isHomeValue ? '0 0 0px 0px rgba(0,0,0,0)' : '0 0 120px 40px rgba(0,0,0,0.25)',
-  });
-}
-
-// Observa mudanças de rota para animar a transição do background
-watch(isHome, async (novo) => {
-  await nextTick();
-  animateBackground(novo);
-});
-
-// Garante que ao montar já esteja no estado correto
-onMounted(() => {
-  animateBackground(isHome.value);
-});
-
-function resetLevel() {
-  window.location.reload();
-}
-</script>
-
 <template>
   <q-layout view="lHh Lpr lFf" class="main-layout-blur">
     <!-- Transição de background usando GSAP -->
@@ -91,7 +38,7 @@ function resetLevel() {
 
               <q-popup-proxy>
                 <div class="row bg-white q-pa-sm flex gap-4" inline-actions>
-                  <q-btn icon="logout" round color="red" @click="useUser.logout" />
+                  <q-btn icon="logout" round color="red" @click="logout" />
                   <q-btn
                     icon="school"
                     round
@@ -113,7 +60,80 @@ function resetLevel() {
     </div>
   </q-layout>
 </template>
+<script setup lang="ts">
+// import { useAudio } from 'src/composables/useAudio';
+import { useUserStore } from 'stores/user-store';
+import { useGameStore } from 'stores/game-store';
+import { storeToRefs } from 'pinia';
+import { useRoute, useRouter } from 'vue-router';
+import { computed, ref, watch, nextTick, onMounted } from 'vue';
+import ModalSettings from 'components/organisms/ModalSettings.vue';
+import ModalTutorial from 'components/organisms/ModalTutorial.vue';
+import gsap from 'gsap';
 
+const route = useRoute();
+const router = useRouter();
+const useUser = useUserStore();
+const useGame = useGameStore();
+const { getUser } = storeToRefs(useUser);
+
+// const { playMusic, pauseMusic } = useAudio();
+
+const showModalSchool = ref(false);
+
+const isHome = computed(() => route.fullPath === '/');
+const isParty = computed(() => route.query.level);
+
+const backgroundRef = ref<HTMLElement | null>(null);
+
+// Função para animar o background usando GSAP
+function animateBackground(isHomeValue: boolean) {
+  if (!backgroundRef.value) return;
+  gsap.to(backgroundRef.value, {
+    scale: isHomeValue ? 1 : 30,
+    filter: isHomeValue ? 'blur(1px) brightness(1)' : 'blur(8px) brightness(0.7)',
+    duration: 1.6,
+    ease: 'power3.inOut',
+    borderRadius: isHomeValue ? '0%' : '30%',
+    // Metamórfica: arredonda e distorce um pouco ao sair da home
+    boxShadow: isHomeValue ? '0 0 0px 0px rgba(0,0,0,0)' : '0 0 120px 40px rgba(0,0,0,0.25)',
+  });
+}
+
+// Observa mudanças de rota para animar a transição do background
+watch(isHome, async (novo) => {
+  await nextTick();
+  animateBackground(novo);
+});
+
+// Garante que ao montar já esteja no estado correto
+onMounted(async () => {
+  await useGame.getLevels();
+
+  animateBackground(isHome.value);
+});
+
+function resetLevel() {
+  window.location.reload();
+}
+
+const logout = async () => {
+  try {
+    await useUser.logout();
+
+    useUser.user = null;
+    localStorage.removeItem('user');
+
+    if (router.currentRoute.value.fullPath === '/') {
+      window.location.reload();
+    } else {
+      await router.push('/');
+    }
+  } catch (e) {
+    console.log(e);
+  }
+};
+</script>
 <style scoped>
 .main-layout-blur {
   position: relative;

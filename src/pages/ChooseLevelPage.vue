@@ -1,3 +1,34 @@
+<template>
+  <q-page
+    class="flex column items-center gap-6 q-px-sm"
+    style="max-width: 900px; margin: 0 auto; bottom: 40px"
+  >
+    <h2 class="text-light-blue-2 text-h3 tagesschrift-regular text-center title text-shadow">
+      Selecione o nível
+    </h2>
+
+    <div class="flex justify-center items-center gap-4 full-width">
+      <q-btn
+        v-for="value in levelsConfig"
+        :key="value.level"
+        :label="`Nível ${value.level}`"
+        @click="goToLevel(value.level)"
+        :color="value.color"
+        :text-color="value.textColor"
+        class="q-py-lg level text-weight-bolder full-width levels"
+        :class="`level${value.level}`"
+      />
+    </div>
+
+    <a
+      href="/"
+      class="text-black bg-red rounded-md shadow-lg text-bold title fixed-bottom text-center"
+      style="max-width: 400px; margin: 0 auto; bottom: 40px"
+      >LOGIN NECESSARIO PARA CONTABILIZAR CONQUISTAS</a
+    >
+  </q-page>
+</template>
+
 <script setup lang="ts">
 import { useGameStore } from 'stores/game-store';
 import { storeToRefs } from 'pinia';
@@ -98,37 +129,6 @@ onMounted(() => {
   }, 5000);
 });
 </script>
-
-<template>
-  <q-page
-    class="flex column items-center gap-6 q-px-sm"
-    style="max-width: 900px; margin: 0 auto; bottom: 40px"
-  >
-    <h2 class="text-light-blue-2 text-h3 tagesschrift-regular text-center title text-shadow">
-      Selecione o nível
-    </h2>
-
-    <div class="flex justify-center items-center gap-4 full-width">
-      <q-btn
-        v-for="value in levelsConfig"
-        :key="value.level"
-        :label="`Nível ${value.level}`"
-        @click="goToLevel(value.level)"
-        :color="value.color"
-        :text-color="value.textColor"
-        class="q-py-lg level text-weight-bolder full-width levels"
-        :class="`level${value.level}`"
-      />
-    </div>
-
-    <a
-      href="/"
-      class="text-black bg-red rounded-md shadow-lg text-bold title fixed-bottom text-center"
-      style="max-width: 400px; margin: 0 auto; bottom: 40px"
-      >LOGIN NECESSARIO PARA CONTABILIZAR CONQUISTAS</a
-    >
-  </q-page>
-</template>
 
 <style scoped lang="scss">
 .level1,

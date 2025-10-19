@@ -76,7 +76,6 @@ export const randomImagesEmojis = [
 //   const newArr = [...array];
 //   for (let i = newArr.length - 1; i > 0; i--) {
 //     const j = Math.floor(Math.random() * (i + 1));
-//     // eslint-disable-next-line @typescript-eslint/no-explicit-any
 //     [newArr[i] as any, newArr[j] as any] = [newArr[j], newArr[i]];
 //   }
 //   return newArr;

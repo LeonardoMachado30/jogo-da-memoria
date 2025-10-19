@@ -7,16 +7,18 @@ import {
   limitToLast,
   set,
   update,
+  getDatabase,
+  ref,
 } from 'firebase/database';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { db } from 'src/boot/firebase';
-import { useRouter } from 'vue-router';
 
-interface User {
+export interface User {
   nome: string | null;
   email: string | null;
   photoURL?: string | null;
   uid: string;
+  permission?: string;
 }
 
 interface UserState {
@@ -90,13 +92,12 @@ export const useUserStore = defineStore('user', {
         if (snapshot.exists()) {
           const rankingData = snapshot.val() as Record<string, Ranking>;
 
-          // Transforma em array e ordena manualmente do maior para o menor
           return Object.entries(rankingData)
             .map(([id, rank]) => ({
               ...rank,
               id,
             }))
-            .sort((a, b) => (b.score ?? 0) - (a.score ?? 0)); // Score descendente
+            .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
         } else {
           return [];
         }
@@ -106,13 +107,53 @@ export const useUserStore = defineStore('user', {
       }
     },
 
+    async getAllUsers(): Promise<User[]> {
+      try {
+        const db = getDatabase();
+        const usersPathRef = ref(db, 'users');
+        const snapshot = await get(usersPathRef);
+        if (snapshot.exists()) {
+          const usersData = snapshot.val() as Record<string, User>;
+          return Object.entries(usersData).map(([uid, user]) => ({
+            ...user,
+            uid,
+          }));
+        } else {
+          return [];
+        }
+      } catch (error) {
+        console.error('Erro ao obter todos os usuários:', error);
+        return [];
+      }
+    },
+
+    async getAllRankings(): Promise<Ranking[]> {
+      try {
+        const db = getDatabase();
+        const rankingsRef = ref(db, 'ranking');
+        const snapshot = await get(rankingsRef);
+
+        if (snapshot.exists()) {
+          const rankingsData = snapshot.val() as Record<string, Ranking>;
+          return Object.entries(rankingsData).map(([uid, ranking]) => ({
+            ...ranking,
+            uid,
+          }));
+        } else {
+          return [];
+        }
+      } catch (error) {
+        console.error('Erro ao obter todos os rankings:', error);
+        return [];
+      }
+    },
+
     async loginWithGoogle() {
       try {
         const auth = getAuth();
         const provider = new GoogleAuthProvider();
         const result = await signInWithPopup(auth, provider);
-
-        const user = {
+        const user: User = {
           nome: result.user.displayName,
           email: result.user.email,
           photoURL: result.user.photoURL,
@@ -121,6 +162,7 @@ export const useUserStore = defineStore('user', {
 
         const existingUser = await this.getUserData(result.user.uid);
 
+        // Se o usuario não exisitir no banco cria
         if (!existingUser) {
           await this.addUser(result.user.uid, user);
           await this.addRaking(result.user.uid, {
@@ -131,6 +173,8 @@ export const useUserStore = defineStore('user', {
           });
         }
 
+        user.permission = existingUser.permission ?? null;
+
         this.setUser(user);
       } catch (error) {
         console.error('Erro no login com Google:', error);
@@ -138,16 +182,14 @@ export const useUserStore = defineStore('user', {
     },
 
     async logout() {
-      const router = useRouter();
       try {
         const auth = getAuth();
         await signOut(auth);
 
         this.user = null;
         localStorage.removeItem('user');
-        if (router) {
-          await router.push('/');
-        }
+
+        return;
       } catch (error) {
         console.error('Erro ao fazer logout:', error);
       }

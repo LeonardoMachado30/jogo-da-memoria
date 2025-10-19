@@ -8,7 +8,7 @@
 declare const self: ServiceWorkerGlobalScope &
   typeof globalThis & {
     skipWaiting: () => void;
-    __WB_MANIFEST: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    __WB_MANIFEST: any;
     clients: Clients;
   };
 

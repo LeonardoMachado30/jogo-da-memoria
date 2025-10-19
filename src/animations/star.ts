@@ -1,8 +1,6 @@
 import gsap from 'gsap';
 
-export function starAnimation(
-  { star, index }: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-) {
+export function starAnimation({ star, index }: any) {
   const tl = gsap.timeline();
 
   tl.fromTo(

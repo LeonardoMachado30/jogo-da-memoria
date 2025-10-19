@@ -17,6 +17,18 @@ const routes: RouteRecordRaw[] = [
         path: '/escolher-nivel',
         component: () => import('pages/ChooseLevelPage.vue'),
       },
+      {
+        path: '/todas-as-cartas',
+        component: () => import('src/pages/ManyCards.vue'),
+      },
+      {
+        path: '/todos-os-usuarios',
+        component: () => import('src/pages/ManyUsers.vue'),
+      },
+      {
+        path: '/configurar-niveis',
+        component: () => import('src/pages/ConfigureLevels.vue'),
+      },
     ],
   },
   // Always leave this as last one,
