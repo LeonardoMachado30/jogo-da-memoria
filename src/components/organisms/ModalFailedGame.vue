@@ -9,10 +9,10 @@ const modelValue = defineModel({ default: false });
 const { audioGameOver, audioCongratulation } = useAudio();
 const useGame = useGameStore();
 
-function resetLeve() {
+const resetLeve = async () => {
   audioCongratulation().pause();
-  useGame.resetLevelState();
-}
+  await useGame.resetLevelState();
+};
 
 watch(
   modelValue,

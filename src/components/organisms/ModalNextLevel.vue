@@ -8,29 +8,30 @@ import { starAnimation } from 'src/animations/star';
 import { useRoute, useRouter } from 'vue-router';
 
 const useGame = useGameStore();
-const { currentScore, game, attemptCounter, levelsConfig } = storeToRefs(useGame);
+const { currentScore, game, attemptCounter } = storeToRefs(useGame);
 
 const router = useRouter();
 const route = useRoute();
 
 const modelValue = defineModel('showModal', { default: false });
 
-const starsCount = ref(levelsConfig.value.length);
+const starsCount = ref(3);
 
 const { audioCongratulation } = useAudio();
 
 const starsArray = ref<number[]>(Array.from({ length: starsCount.value }, (_, i) => i + 1));
 
-async function nextLevel() {
+const nextLevel = async () => {
   audioCongratulation().pause();
-  useGame.nextLevel();
+  await useGame.nextLevel();
+
   await router.push({
     path: route.path,
     query: {
       level: game.value.currentLevel,
     },
   });
-}
+};
 
 function animateStars() {
   setTimeout(() => {

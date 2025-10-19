@@ -5,6 +5,7 @@ import { useAudio } from 'src/composables/useAudio';
 interface Card {
   src: string;
   alt: string;
+  id: number;
 }
 
 const props = defineProps<{
@@ -16,7 +17,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'flip', payload: { index: number; alt: string }): void;
+  (e: 'flip', payload: { index: number; alt: string; id: number }): void;
 }>();
 
 const { audioCard } = useAudio();
@@ -37,7 +38,7 @@ function toggleFlip(): void {
   if (props.locked || flipped.value) return;
   flipped.value = true;
   audioCard();
-  emit('flip', { index: props.index, alt: props.card.alt });
+  emit('flip', { index: props.index, alt: props.card.alt, id: props.card.id });
 }
 
 defineExpose({

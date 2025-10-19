@@ -6,10 +6,13 @@ import timer, { formattedTime, resetTimer, resetTimerStart } from 'src/composabl
 import { randomImagesEmojis, randomImagesFruits } from 'src/model/images';
 import { ref as dbRef, get, set, update } from 'firebase/database';
 import { db } from 'src/boot/firebase';
+import { balancedLevels } from 'src/model/levels';
 
 interface Images {
   src: string;
   alt: string;
+  category: string;
+  id: number;
 }
 
 export interface Level {
@@ -19,6 +22,7 @@ export interface Level {
   color: string;
   textColor: string;
   deck: string;
+  allowEqualCards?: number;
 }
 
 interface CardRef {
@@ -39,6 +43,7 @@ interface State {
     startTime: number;
     endTime: number;
     acumulativeAccepts: number;
+    isAdvancing: boolean;
   };
   flippedStatus: boolean[];
   lockBoard: boolean;
@@ -51,6 +56,7 @@ interface State {
 export interface FlippedCard {
   index: number;
   alt: string;
+  id: number;
 }
 
 export const useGameStore = defineStore('game', {
@@ -73,6 +79,7 @@ export const useGameStore = defineStore('game', {
       startTime: 0,
       endTime: 0,
       acumulativeAccepts: 0,
+      isAdvancing: false,
     },
     cards: [],
   }),
@@ -86,7 +93,12 @@ export const useGameStore = defineStore('game', {
     gridSize(state): number {
       return state.levelsConfig.find((cfg) => cfg.level === state.game.currentLevel)?.gridSize || 4;
     },
-
+    getPairs(state): number {
+      return state.levelsConfig.find((cfg) => cfg.pairs === state.game.currentLevel)?.pairs || 4;
+    },
+    getLevel(state): number {
+      return state.levelsConfig.find((cfg) => cfg.level === state.game.currentLevel)?.level || 4;
+    },
     totalCards(state): number {
       const pairs =
         state.levelsConfig.find((cfg) => cfg.level === state.game.currentLevel)?.pairs || 8;
@@ -106,43 +118,147 @@ export const useGameStore = defineStore('game', {
   },
 
   actions: {
-    /**
-     * Embaralha um array usando o algoritmo Fisher-Yates
-     */
-    shuffleArray<T>(array: T[]): T[] {
-      const newArr = [...array];
-      for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i] as any, newArr[j] as any] = [newArr[j], newArr[i]];
+    groupCardsByCategory(cards: Images[]): Map<string, Images[]> {
+      const groups = new Map<string, Images[]>();
+
+      for (const card of cards) {
+        const category = card.category;
+
+        if (!groups.has(category)) groups.set(category, []);
+        groups.get(category)!.push(card);
       }
-      return newArr;
+
+      return groups;
     },
 
     /**
-     * Cria pares de cartas aleatórias
+     * Seleciona cartas garantindo diversidade e/ou similaridade conforme o nível
      */
-    createRandomPairs(allCards: Images[], numberOfPairs: number): Images[] {
-      const shuffledOriginalCards = this.shuffleArray(allCards);
-      const selectedCards = shuffledOriginalCards.slice(0, numberOfPairs);
-      const pairedCards = selectedCards.flatMap((card) => [card, card]);
-      return this.shuffleArray(pairedCards);
+    selectBalancedCards(
+      allCards: Images[],
+      numberOfPairs: number,
+      allowEqualCards: number = 0,
+    ): Images[] {
+      const cardGroups = this.groupCardsByCategory(allCards);
+      const selectedCards: Images[] = [];
+      let pairsAdded = 0;
+
+      // 1. Separa os grupos
+      const similarGroups: Images[][] = []; // Grupos com 2+ cartas (ex: [apple1, apple2])
+      const identicalGroups: Images[][] = []; // Grupos com 1 carta (ex: [banana])
+
+      for (const group of cardGroups.values()) {
+        if (group.length > 1) {
+          similarGroups.push(group);
+        } else if (group.length === 1) {
+          identicalGroups.push(group);
+        }
+      }
+
+      // Embaralha as listas de grupos para aleatoriedade
+      const shuffledSimilarGroups = this.shuffleArray(similarGroups);
+      const shuffledIdenticalGroups = this.shuffleArray(identicalGroups);
+
+      // --- ETAPA 1: Adiciona Pares Similares ---
+      // Adiciona o máximo de pares "similares" permitido e disponível
+      const similarPairsToTry = Math.min(
+        allowEqualCards,
+        numberOfPairs,
+        shuffledSimilarGroups.length,
+      );
+
+      for (let i = 0; i < similarPairsToTry; i++) {
+        if (pairsAdded >= numberOfPairs) break; // Para se já atingimos o limite
+
+        const group = shuffledSimilarGroups.pop(); // Pega um grupo do final
+        if (group) {
+          // Pega duas cartas distintas da mesma categoria
+          const pair = this.shuffleArray(group).slice(0, 2);
+          selectedCards.push(...pair);
+          pairsAdded++;
+        }
+      }
+
+      // --- ETAPA 2: Adiciona Pares Idênticos (de grupos únicos) ---
+      // Preenche os pares restantes usando os grupos de carta única
+      while (pairsAdded < numberOfPairs && shuffledIdenticalGroups.length > 0) {
+        const group = shuffledIdenticalGroups.pop(); // Pega um grupo do final
+        if (group && group[0]) {
+          const card = group[0];
+          selectedCards.push(card, card); // Duplica a carta
+          pairsAdded++;
+        }
+      }
+
+      // --- ETAPA 3: Fallback (Se ainda faltarem pares) ---
+      // Se acabaram os grupos "únicos" mas ainda faltam pares,
+      // usamos os grupos "similares" restantes, mas criando pares IDÊNTICOS.
+      // (ex: usamos [apple1, apple1] mesmo que apple2 exista)
+      while (pairsAdded < numberOfPairs && shuffledSimilarGroups.length > 0) {
+        const group = shuffledSimilarGroups.pop(); // Pega um grupo similar restante
+        if (group && group[0]) {
+          const card = group[0]; // Pega apenas a primeira carta
+          selectedCards.push(card, card); // E duplica ela
+          pairsAdded++;
+        }
+      }
+
+      // --- Verificação Final ---
+      if (pairsAdded < numberOfPairs) {
+        console.error(
+          `[MemoryGame Store] Alerta: Não foi possível gerar ${numberOfPairs} pares. O baralho só tem ${pairsAdded} categorias únicas.`,
+        );
+      }
+
+      return selectedCards; // Retorna a lista [a1, a2, b, b, c1, c1]
+    },
+
+    /**
+     * Embaralha um array (Fisher–Yates)
+     */
+    shuffleArray<T>(array: T[]): T[] {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i] as any, arr[j] as any] = [arr[j], arr[i]];
+      }
+      return arr;
+    },
+
+    /**
+     * Cria pares de cartas de forma balanceada e embaralhada
+     */
+    createRandomPairs(
+      allCards: Images[],
+      numberOfPairs: number,
+      allowEqualCards: number = 0,
+    ): Images[] {
+      const selectedCards = this.selectBalancedCards(allCards, numberOfPairs, allowEqualCards);
+
+      // embaralhar novamente para garantir que os pares não fiquem lado a lado
+      return this.shuffleArray(selectedCards);
     },
 
     /**
      * Gera o conjunto de cartas para o nível atual
      */
-    generateLevelCards(): Images[] {
+    async generateLevelCards(): Promise<Images[]> {
+      await this.getLevels();
+
       const deckChoose = this.currentConfig;
       const selectDeck = deckChoose.deck === 'hard' ? randomImagesEmojis : randomImagesFruits;
-      const gameCards = this.createRandomPairs(selectDeck, deckChoose.pairs);
+      const allowEqual = deckChoose.allowEqualCards || 0;
+
+      const gameCards = this.createRandomPairs(selectDeck, deckChoose.pairs, allowEqual);
       this.cards = gameCards;
+
       return gameCards;
     },
 
     /**
      * Reseta completamente o estado do nível
      */
-    resetLevelState() {
+    async resetLevelState() {
       // Reset timers
       resetTimerStart();
       resetTimer();
@@ -158,10 +274,14 @@ export const useGameStore = defineStore('game', {
       this.game.endTime = 0;
 
       // Gera novas cartas
-      this.generateLevelCards();
+      await this.generateLevelCards();
 
       // Reset flipped status baseado no novo total de cartas
-      this.flippedStatus = Array(this.totalCards).fill(false);
+      this.flippedStatus.splice(
+        0,
+        this.flippedStatus.length,
+        ...Array(this.totalCards).fill(false),
+      );
 
       this.isGameInitialized = false;
     },
@@ -169,9 +289,9 @@ export const useGameStore = defineStore('game', {
     /**
      * Inicializa o jogo para o nível atual
      */
-    initializeLevel(level: number) {
+    async initializeLevel(level: number) {
       this.game.currentLevel = level;
-      this.resetLevelState();
+      await this.resetLevelState();
     },
 
     /**
@@ -226,18 +346,30 @@ export const useGameStore = defineStore('game', {
     /**
      * Próximo nível
      */
-    nextLevel() {
-      const nextLevel = this.game.currentLevel + 1;
-      if (nextLevel <= this.levelsConfig.length) {
-        this.initializeLevel(nextLevel);
+    async nextLevel() {
+      if (this.game.isAdvancing) return;
+
+      try {
+        this.game.isAdvancing = true;
+
+        const nextLevel = this.game.currentLevel + 1;
+
+        await this.updateUserCurrentLevelIfAdvance(nextLevel);
+
+        if (nextLevel <= this.levelsConfig.length) {
+          await this.initializeLevel(nextLevel);
+        } else {
+          console.log('🎉 Todos os níveis concluídos!');
+        }
+      } catch (error) {
+        console.error('Erro ao avançar de nível:', error);
+      } finally {
+        this.game.isAdvancing = false;
       }
     },
 
-    /**
-     * Reinicia o nível atual
-     */
-    restartLevel() {
-      this.initializeLevel(this.game.currentLevel);
+    async restartLevel() {
+      await this.initializeLevel(this.game.currentLevel);
     },
 
     async endGame() {
@@ -276,10 +408,10 @@ export const useGameStore = defineStore('game', {
       return 0;
     },
 
-    onFlip({ index, alt }: FlippedCard): void {
+    onFlip({ index, alt, id }: FlippedCard): void {
       if (this.lockBoard) return;
 
-      this.flippedCards.push({ index, alt });
+      this.flippedCards.push({ index, alt, id });
 
       if (this.flippedCards.length === 2) {
         this.attemptCounter = this.attemptCounter + 1;
@@ -288,7 +420,7 @@ export const useGameStore = defineStore('game', {
         const [first, second] = this.flippedCards;
 
         if (first && second) {
-          if (first.alt === second.alt) {
+          if (first.id === second.id) {
             // Par encontrado
             this.game.acumulativeAccepts = 0;
             this.flippedStatus[first.index] = true;
@@ -296,8 +428,9 @@ export const useGameStore = defineStore('game', {
             this.flippedCards = [];
             this.lockBoard = false;
             this.incrementScore(formattedTime.value);
-            resetTimer();
             useAudio().audioPair();
+
+            timer().mounted();
           } else {
             this.game.acumulativeAccepts = this.game.acumulativeAccepts + 1;
             // Par errado
@@ -321,7 +454,7 @@ export const useGameStore = defineStore('game', {
     },
 
     async setLevel() {
-      const levelsObject = this.levelsConfig.reduce(
+      const levelsObject = balancedLevels.reduce(
         (acc, level) => {
           acc[level.level] = level;
           return acc;
@@ -391,6 +524,66 @@ export const useGameStore = defineStore('game', {
         console.log(`Level ${levelNumber} atualizado parcialmente`);
       } catch (error) {
         console.error(`Erro ao atualizar level ${levelNumber}:`, error);
+        throw error;
+      }
+    },
+
+    // async updateAllRankingsCurrentLevelTo10() {
+    //   try {
+    //     const rankingsRef = dbRef(db, 'ranking');
+    //     // Busca todos os registros do ranking
+    //     const snapshot = await get(rankingsRef);
+
+    //     if (!snapshot.exists()) {
+    //       console.log('Nenhum registro de ranking encontrado.');
+    //       return;
+    //     }
+
+    //     const updates: Record<string, any> = {};
+    //     const rankings = snapshot.val();
+
+    //     // Para cada usuário, adiciona ou atualiza o campo currentLevel para 10
+    //     Object.keys(rankings).forEach((uid) => {
+    //       updates[`${uid}/currentLevel`] = 10;
+    //     });
+
+    //     // Aplica atualização em lote
+    //     await update(rankingsRef, updates);
+    //     console.log('Todos os rankings atualizados para currentLevel = 10');
+    //   } catch (error) {
+    //     console.error('Erro ao atualizar currentLevel no ranking:', error);
+    //     throw error;
+    //   }
+    // },
+
+    async getUserCurrentLevelUnlock(uid?: string): Promise<number> {
+      try {
+        const useUser = useUserStore();
+        const getUid = uid ?? useUser.getUser.uid;
+
+        const userRankingRef = dbRef(db, `ranking/${getUid}/currentLevel`);
+        const snapshot = await get(userRankingRef);
+
+        if (!snapshot.exists()) {
+          return 0;
+        }
+
+        return snapshot.val();
+      } catch (error) {
+        console.error(`Erro ao buscar currentLevel do usuário ${uid}:`, error);
+        throw error;
+      }
+    },
+
+    async updateUserCurrentLevelIfAdvance(nextLevel: number, uid?: string): Promise<void> {
+      try {
+        const useUser = useUserStore();
+        const getUid = uid ?? useUser.getUser.uid;
+        if (nextLevel > this.game.currentLevel) {
+          await update(dbRef(db, `ranking/${getUid}`), { currentLevel: nextLevel });
+        }
+      } catch (error) {
+        console.error(`Erro ao atualizar currentLevel do usuário ${uid}:`, error);
         throw error;
       }
     },

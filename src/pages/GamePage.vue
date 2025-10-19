@@ -8,8 +8,7 @@ import ModalFailedGame from 'components/organisms/ModalFailedGame.vue';
 import ModalNextLevel from 'components/organisms/ModalNextLevel.vue';
 import { useRoute } from 'vue-router';
 import { distributeCardsAnimation } from 'src/animations/card';
-import { DotLottieVue } from '@lottiefiles/dotlottie-vue';
-import gsap from 'gsap';
+import LockOverlay from 'src/components/atoms/LockOverlay.vue';
 
 const useGame = useGameStore();
 const route = useRoute();
@@ -17,7 +16,8 @@ const route = useRoute();
 const {
   initialFlip,
   currentScore,
-  gridSize,
+  // gridSize,
+  getLevel,
   game,
   cards,
   lockBoard,
@@ -31,13 +31,20 @@ const showModalEnd = ref<boolean>(false);
 const isOneMinuteAlert = ref(false);
 const pulseKey = ref(0);
 const modalFailedGame = ref(false);
-const startStartCounter = ref(false);
+const levelNotUnlocked = ref(false);
+
+// ----- Adjusted Spinner Counter -----
+const startStartCounter = ref(true);
+const spinnerCount = ref(3); // Mostrar 3,2,1 (pode ajustar)
+let spinnerInterval: any = null;
+// ------------------------------------
+
 // Inicializa o nível baseado na query string
 watch(
   () => route.query.level,
-  (val) => {
+  async (val) => {
     const level = Number(val) || 1;
-    useGame.initializeLevel(level);
+    await useGame.initializeLevel(level);
   },
   { immediate: true },
 );
@@ -55,12 +62,23 @@ watch(formattedTime, (newTime) => {
 });
 
 // Detecta quando o nível foi completado
+const isProcessingEnd = ref(false);
+
 watch(
   () => flippedStatus.value,
   async (newValue) => {
+    if (isProcessingEnd.value) return;
+
     if (newValue.length > 0 && newValue.every((val) => val)) {
+      isProcessingEnd.value = true;
       showModalEnd.value = true;
+
       await useGame.endGame();
+
+      // opcional: atraso para resetar flag
+      setTimeout(() => {
+        isProcessingEnd.value = false;
+      }, 500);
     }
   },
   { deep: true },
@@ -126,62 +144,43 @@ async function startLevelSequence() {
   }, 10000);
 }
 
-onMounted(() => {
-  startStartCounter.value = true;
-  void nextTick().then(() => {
-    const counter = document.querySelectorAll('.counter');
-    if (counter.length > 0) {
-      gsap.fromTo(
-        counter,
-        {
-          opacity: 1,
-          scale: 0,
-        },
-        {
-          opacity: 1,
-          duration: 0.8,
-          scale: 1,
-          delay: 0.08,
-          ease: 'back.out(1.2)',
-        },
-      );
-    }
-  });
+onMounted(async () => {
+  const currentLevelUnlock = await useGame.getUserCurrentLevelUnlock();
 
-  setTimeout(() => {
+  if (currentLevelUnlock < Number(route.query.level)) {
     startStartCounter.value = false;
-    void startLevelSequence();
-  }, 5000);
+    levelNotUnlocked.value = true;
+    return;
+  }
+
+  startStartCounter.value = true;
+  spinnerCount.value = 3;
+
+  // void nextTick().then(() => {
+  //   // Opcional animar o número (usando gsap se quiser)
+  // });
+
+  spinnerInterval = setInterval(() => {
+    if (spinnerCount.value > 1) {
+      spinnerCount.value -= 1;
+    } else {
+      startStartCounter.value = false;
+      clearInterval(spinnerInterval);
+      void startLevelSequence();
+    }
+  }, 1000);
 });
 </script>
 
 <template>
   <q-page class="--container">
-    <div
-      v-if="startStartCounter"
-      class="backdrop-counter"
-      style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100vw;
-        height: 100vh;
-        /* background: rgba(0, 0, 0, 0.2); */
-        transition: transform 2s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      "
-    >
-      <DotLottieVue
-        class="q-pa-md counter"
-        autoplay
-        loop
-        src="https://lottie.host/918e79fb-3b81-48f7-8fdb-88edf2b6ea8b/l4xpZZV5VP.lottie"
-      />
+    <LockOverlay v-if="levelNotUnlocked" />
+
+    <div v-if="startStartCounter" class="backdrop-counter spinner-backdrop">
+      <div class="spinner-container">
+        <div class="custom-spinner"></div>
+        <span class="spinner-count">{{ spinnerCount }}</span>
+      </div>
     </div>
 
     <div class="flex justify-around items-center text-blue text-weight-bolder text-body1 row">
@@ -195,9 +194,12 @@ onMounted(() => {
       {{ initialFlip ? formattedTimeStart : formattedTime }}
     </p>
 
-    <div class="--grid" :style="{ gridTemplateColumns: `repeat(${gridSize}, minmax(20px, 1fr))` }">
+    <div
+      class="--grid"
+      :style="{ gridTemplateColumns: `repeat(auto-fill, ${getLevel < 12 ? '17%' : '14%'})` }"
+    >
       <template v-for="(card, index) in cards" :key="`${game.currentLevel}-${index}`">
-        <div class="card-wrapper">
+        <div :class="['card-wrapper']">
           <CardIndex
             :index="index"
             :card="card"
@@ -226,6 +228,19 @@ onMounted(() => {
 .--grid {
   display: grid;
   grid-gap: 8px;
+  place-content: center;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.--flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  place-content: center;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-wrapper {
@@ -233,12 +248,88 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   opacity: 0;
+  // max-width: 60px;
+}
+
+.--max-w-sm {
+  max-width: 70px;
+}
+
+.--max-w-md {
+  max-width: 80px;
+}
+
+.--max-w-lg {
+  max-width: 100px;
 }
 
 .stat-box {
   color: white;
   border-radius: 4px;
   // box-shadow: 2px 0px 6px #000;
+}
+
+/* --- Spinner Backdrop --- */
+.spinner-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.24);
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Spinner and Counter --- */
+.spinner-container {
+  position: relative;
+  width: 144px;
+  height: 144px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-spinner {
+  border: 8px solid rgba(60, 60, 170, 0.14);
+  border-top: 8px solid #2196f3;
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spinner-rotate 1s linear infinite;
+}
+
+@keyframes spinner-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-count {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.2rem;
+  font-weight: 600;
+  color: #2196f3;
+  letter-spacing: -2px;
+  text-shadow: 0 1px 8px rgba(15, 23, 42, 0.18);
+  z-index: 2;
+  user-select: none;
 }
 
 .counter {

@@ -108,6 +108,8 @@ watch(isHome, async (novo) => {
 
 // Garante que ao montar já esteja no estado correto
 onMounted(async () => {
+  // await useGame.setLevel();
+  // await useGame.updateAllRankingsCurrentLevelTo10();
   await useGame.getLevels();
 
   animateBackground(isHome.value);
