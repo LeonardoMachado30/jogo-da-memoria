@@ -29,6 +29,15 @@ interface CardRef {
   flipDown: () => void;
 }
 
+interface Game {
+  currentLevel: number;
+  currentScore: number;
+  startTime: number;
+  endTime: number;
+  acumulativeAccepts: number;
+  isAdvancing: boolean;
+}
+
 interface State {
   currentScore: number;
   pulseTimerList: string[];
@@ -37,14 +46,7 @@ interface State {
   usedCardsIndices: Set<number>;
   availableCards: Images[];
   levelsConfig: Level[] | [];
-  game: {
-    currentLevel: number;
-    currentScore: number;
-    startTime: number;
-    endTime: number;
-    acumulativeAccepts: number;
-    isAdvancing: boolean;
-  };
+  game: Game;
   flippedStatus: boolean[];
   lockBoard: boolean;
   flippedCards: FlippedCard[];
@@ -118,101 +120,6 @@ export const useGameStore = defineStore('game', {
   },
 
   actions: {
-    groupCardsByCategory(cards: Images[]): Map<string, Images[]> {
-      const groups = new Map<string, Images[]>();
-
-      for (const card of cards) {
-        const category = card.category;
-
-        if (!groups.has(category)) groups.set(category, []);
-        groups.get(category)!.push(card);
-      }
-
-      return groups;
-    },
-
-    /**
-     * Seleciona cartas garantindo diversidade e/ou similaridade conforme o nível
-     */
-    selectBalancedCards(
-      allCards: Images[],
-      numberOfPairs: number,
-      allowEqualCards: number = 0,
-    ): Images[] {
-      const cardGroups = this.groupCardsByCategory(allCards);
-      const selectedCards: Images[] = [];
-      let pairsAdded = 0;
-
-      // 1. Separa os grupos
-      const similarGroups: Images[][] = []; // Grupos com 2+ cartas (ex: [apple1, apple2])
-      const identicalGroups: Images[][] = []; // Grupos com 1 carta (ex: [banana])
-
-      for (const group of cardGroups.values()) {
-        if (group.length > 1) {
-          similarGroups.push(group);
-        } else if (group.length === 1) {
-          identicalGroups.push(group);
-        }
-      }
-
-      // Embaralha as listas de grupos para aleatoriedade
-      const shuffledSimilarGroups = this.shuffleArray(similarGroups);
-      const shuffledIdenticalGroups = this.shuffleArray(identicalGroups);
-
-      // --- ETAPA 1: Adiciona Pares Similares ---
-      // Adiciona o máximo de pares "similares" permitido e disponível
-      const similarPairsToTry = Math.min(
-        allowEqualCards,
-        numberOfPairs,
-        shuffledSimilarGroups.length,
-      );
-
-      for (let i = 0; i < similarPairsToTry; i++) {
-        if (pairsAdded >= numberOfPairs) break; // Para se já atingimos o limite
-
-        const group = shuffledSimilarGroups.pop(); // Pega um grupo do final
-        if (group) {
-          // Pega duas cartas distintas da mesma categoria
-          const pair = this.shuffleArray(group).slice(0, 2);
-          selectedCards.push(...pair);
-          pairsAdded++;
-        }
-      }
-
-      // --- ETAPA 2: Adiciona Pares Idênticos (de grupos únicos) ---
-      // Preenche os pares restantes usando os grupos de carta única
-      while (pairsAdded < numberOfPairs && shuffledIdenticalGroups.length > 0) {
-        const group = shuffledIdenticalGroups.pop(); // Pega um grupo do final
-        if (group && group[0]) {
-          const card = group[0];
-          selectedCards.push(card, card); // Duplica a carta
-          pairsAdded++;
-        }
-      }
-
-      // --- ETAPA 3: Fallback (Se ainda faltarem pares) ---
-      // Se acabaram os grupos "únicos" mas ainda faltam pares,
-      // usamos os grupos "similares" restantes, mas criando pares IDÊNTICOS.
-      // (ex: usamos [apple1, apple1] mesmo que apple2 exista)
-      while (pairsAdded < numberOfPairs && shuffledSimilarGroups.length > 0) {
-        const group = shuffledSimilarGroups.pop(); // Pega um grupo similar restante
-        if (group && group[0]) {
-          const card = group[0]; // Pega apenas a primeira carta
-          selectedCards.push(card, card); // E duplica ela
-          pairsAdded++;
-        }
-      }
-
-      // --- Verificação Final ---
-      if (pairsAdded < numberOfPairs) {
-        console.error(
-          `[MemoryGame Store] Alerta: Não foi possível gerar ${numberOfPairs} pares. O baralho só tem ${pairsAdded} categorias únicas.`,
-        );
-      }
-
-      return selectedCards; // Retorna a lista [a1, a2, b, b, c1, c1]
-    },
-
     /**
      * Embaralha um array (Fisher–Yates)
      */
@@ -226,30 +133,27 @@ export const useGameStore = defineStore('game', {
     },
 
     /**
-     * Cria pares de cartas de forma balanceada e embaralhada
-     */
-    createRandomPairs(
-      allCards: Images[],
-      numberOfPairs: number,
-      allowEqualCards: number = 0,
-    ): Images[] {
-      const selectedCards = this.selectBalancedCards(allCards, numberOfPairs, allowEqualCards);
-
-      // embaralhar novamente para garantir que os pares não fiquem lado a lado
-      return this.shuffleArray(selectedCards);
-    },
-
-    /**
-     * Gera o conjunto de cartas para o nível atual
+     * Gera e embaralha pares de cartas para o nível atual
      */
     async generateLevelCards(): Promise<Images[]> {
       await this.getLevels();
 
+      // Usa sempre randomImagesEmojis para montar os pares
       const deckChoose = this.currentConfig;
-      const selectDeck = deckChoose.deck === 'hard' ? randomImagesEmojis : randomImagesFruits;
-      const allowEqual = deckChoose.allowEqualCards || 0;
+      const selectDeck = deckChoose.deck === 'easy' ? randomImagesFruits : randomImagesEmojis;
+      const pairs = deckChoose.pairs;
 
-      const gameCards = this.createRandomPairs(selectDeck, deckChoose.pairs, allowEqual);
+      // Pega um subconjunto aleatório para os pares
+      const baseCards = this.shuffleArray(selectDeck).slice(0, pairs);
+
+      // Duplicar cada carta para formar os pares
+      const cards: Images[] = [];
+      for (const card of baseCards) {
+        cards.push({ ...card }, { ...card });
+      }
+
+      // Embaralha o baralho final de cartas
+      const gameCards = this.shuffleArray(cards);
       this.cards = gameCards;
 
       return gameCards;
@@ -258,7 +162,11 @@ export const useGameStore = defineStore('game', {
     /**
      * Reseta completamente o estado do nível
      */
-    async resetLevelState() {
+    async resetGame() {
+      this.isGameInitialized = true;
+
+      await this.generateLevelCards();
+
       // Reset timers
       resetTimerStart();
       resetTimer();
@@ -272,9 +180,7 @@ export const useGameStore = defineStore('game', {
       this.lockBoard = true;
       this.game.startTime = 0;
       this.game.endTime = 0;
-
-      // Gera novas cartas
-      await this.generateLevelCards();
+      this.game.currentLevel = this.game.currentLevel ?? 1;
 
       // Reset flipped status baseado no novo total de cartas
       this.flippedStatus.splice(
@@ -289,28 +195,8 @@ export const useGameStore = defineStore('game', {
     /**
      * Inicializa o jogo para o nível atual
      */
-    async initializeLevel(level: number) {
+    setLevel(level: number) {
       this.game.currentLevel = level;
-      await this.resetLevelState();
-    },
-
-    /**
-     * Inicia o jogo com animações e timers
-     */
-    async startGameSequence() {
-      const { playMusic } = useAudio();
-
-      // Garante que o jogo está resetado
-      if (!this.isGameInitialized) {
-        this.lockBoard = true;
-        this.initialFlip = false;
-        playMusic();
-
-        // Aguarda um frame para garantir que o DOM foi atualizado
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        this.isGameInitialized = true;
-      }
     },
 
     /**
@@ -357,7 +243,8 @@ export const useGameStore = defineStore('game', {
         await this.updateUserCurrentLevelIfAdvance(nextLevel);
 
         if (nextLevel <= this.levelsConfig.length) {
-          await this.initializeLevel(nextLevel);
+          // await this.postLevel();
+          // await this.initializeLevel(nextLevel);
         } else {
           console.log('🎉 Todos os níveis concluídos!');
         }
@@ -366,10 +253,6 @@ export const useGameStore = defineStore('game', {
       } finally {
         this.game.isAdvancing = false;
       }
-    },
-
-    async restartLevel() {
-      await this.initializeLevel(this.game.currentLevel);
     },
 
     async endGame() {
@@ -453,7 +336,7 @@ export const useGameStore = defineStore('game', {
       return `${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
     },
 
-    async setLevel() {
+    async postAllLevel() {
       const levelsObject = balancedLevels.reduce(
         (acc, level) => {
           acc[level.level] = level;

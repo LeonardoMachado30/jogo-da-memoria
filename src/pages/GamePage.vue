@@ -10,46 +10,107 @@ import { useRoute } from 'vue-router';
 import { distributeCardsAnimation } from 'src/animations/card';
 import LockOverlay from 'src/components/atoms/LockOverlay.vue';
 
-const useGame = useGameStore();
 const route = useRoute();
+const useGame = useGameStore();
 
 const {
   initialFlip,
+  lockBoard,
   currentScore,
   // gridSize,
   getLevel,
   game,
   cards,
-  lockBoard,
   attemptCounter,
   flippedStatus,
   cardRefs,
   currentConfig,
+  isGameInitialized,
 } = storeToRefs(useGame);
 
 const showModalEnd = ref<boolean>(false);
-const isOneMinuteAlert = ref(false);
-const pulseKey = ref(0);
-const modalFailedGame = ref(false);
-const levelNotUnlocked = ref(false);
+const isOneMinuteAlert = ref<boolean>(false);
+const modalFailedGame = ref<boolean>(false);
+const levelNotUnlocked = ref<boolean>(false);
+const isProcessingEnd = ref<boolean>(false);
+const startStartCounter = ref<boolean>(true);
 
-// ----- Adjusted Spinner Counter -----
-const startStartCounter = ref(true);
-const spinnerCount = ref(3); // Mostrar 3,2,1 (pode ajustar)
+const spinnerCount = ref<number>(3);
+const pulseKey = ref<number>(0);
+
 let spinnerInterval: any = null;
-// ------------------------------------
 
-// Inicializa o nível baseado na query string
+const initGameRules = async (): Promise<void> => {
+  if (!isGameInitialized.value) {
+    lockBoard.value = true;
+    initialFlip.value = false;
+
+    await useGame.generateLevelCards();
+
+    await nextTick();
+
+    const cardsElements = document.querySelectorAll('.card-wrapper');
+    const gridContainer = document.querySelector('.--grid');
+
+    const notAnyElements = !gridContainer || cards.value.length === 0 || cardsElements.length === 0;
+
+    if (notAnyElements) {
+      console.warn('Elementos não encontrados para animação');
+      return;
+    }
+
+    const containerRect = gridContainer.getBoundingClientRect();
+    const centerX = containerRect.width / 2;
+    const centerY = window.innerHeight;
+
+    const props = { containerRect, centerY, centerX };
+
+    // Anima distribuição das cartas
+    cardsElements.forEach((card, index) => {
+      distributeCardsAnimation({ card, index, ...props }, () => {
+        if (index === cardsElements.length - 1) useGame.startMemorizationPhase();
+      });
+    });
+    isGameInitialized.value = true;
+  }
+};
+
+const initGame = async (): Promise<void> => {
+  const currentLevelUnlock = await useGame.getUserCurrentLevelUnlock();
+
+  if (currentLevelUnlock < Number(route.query.level)) {
+    startStartCounter.value = false;
+    levelNotUnlocked.value = true;
+    return;
+  }
+
+  startStartCounter.value = true;
+  spinnerCount.value = 3;
+
+  spinnerInterval = setInterval(async () => {
+    if (spinnerCount.value > 1) {
+      spinnerCount.value -= 1;
+    } else {
+      startStartCounter.value = false;
+      clearInterval(spinnerInterval);
+      await initGameRules();
+    }
+  }, 1000);
+};
+
+onMounted(async () => {
+  await initGame();
+});
+
 watch(
   () => route.query.level,
-  async (val) => {
+  (val) => {
     const level = Number(val) || 1;
-    await useGame.initializeLevel(level);
+    useGame.setLevel(level);
   },
   { immediate: true },
 );
 
-// Alerta de tempo
 watch(formattedTime, (newTime) => {
   useGame.pulseTimerList.forEach((time) => {
     if (newTime === time) {
@@ -60,9 +121,6 @@ watch(formattedTime, (newTime) => {
     }
   });
 });
-
-// Detecta quando o nível foi completado
-const isProcessingEnd = ref(false);
 
 watch(
   () => flippedStatus.value,
@@ -75,7 +133,6 @@ watch(
 
       await useGame.endGame();
 
-      // opcional: atraso para resetar flag
       setTimeout(() => {
         isProcessingEnd.value = false;
       }, 500);
@@ -96,80 +153,9 @@ watch(
   () => game.value.currentLevel,
   async () => {
     await nextTick();
-    void startLevelSequence();
+    await initGame();
   },
 );
-
-/**
- * Sequência de início do nível com animações
- */
-async function startLevelSequence() {
-  // Aguarda inicialização do store
-  await useGame.startGameSequence();
-
-  await nextTick();
-
-  const cardsElements = document.querySelectorAll('.card-wrapper');
-  const gridContainer = document.querySelector('.--grid');
-
-  if (!gridContainer || cards.value.length === 0 || cardsElements.length === 0) {
-    console.warn('Elementos não encontrados para animação');
-    return;
-  }
-
-  const containerRect = gridContainer.getBoundingClientRect();
-  const centerX = containerRect.width / 2;
-  const centerY = window.innerHeight;
-
-  // Anima distribuição das cartas
-  cardsElements.forEach((card, index) => {
-    distributeCardsAnimation({ card, containerRect, index, centerY, centerX }, () => {
-      // Quando a última carta terminar a animação
-      if (index === cardsElements.length - 1) {
-        // Inicia a fase de memorização
-        setTimeout(() => {
-          useGame.startMemorizationPhase();
-        }, 300);
-      }
-    });
-  });
-
-  // Pulso do timer
-  const interval = setInterval(() => {
-    pulseKey.value++;
-  }, 30000);
-
-  setTimeout(() => {
-    clearInterval(interval);
-  }, 10000);
-}
-
-onMounted(async () => {
-  const currentLevelUnlock = await useGame.getUserCurrentLevelUnlock();
-
-  if (currentLevelUnlock < Number(route.query.level)) {
-    startStartCounter.value = false;
-    levelNotUnlocked.value = true;
-    return;
-  }
-
-  startStartCounter.value = true;
-  spinnerCount.value = 3;
-
-  // void nextTick().then(() => {
-  //   // Opcional animar o número (usando gsap se quiser)
-  // });
-
-  spinnerInterval = setInterval(() => {
-    if (spinnerCount.value > 1) {
-      spinnerCount.value -= 1;
-    } else {
-      startStartCounter.value = false;
-      clearInterval(spinnerInterval);
-      void startLevelSequence();
-    }
-  }, 1000);
-});
 </script>
 
 <template>

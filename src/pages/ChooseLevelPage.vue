@@ -51,7 +51,7 @@
                     <stop offset="100%" :style="`stop-color:${getTileColor(level.color)}`" />
                   </linearGradient>
                 </defs>
-                <polygon
+                <!-- <polygon
                   class="hex-bg"
                   points="50,5 90,25 90,65 50,85 10,65 10,25"
                   :fill="`url(#tileGrad-${level.level})`"
@@ -63,7 +63,7 @@
                   fill="none"
                   :stroke="getTileColor(level.color)"
                   stroke-width="2"
-                />
+                /> -->
               </svg>
 
               <!-- Conteúdo do tile -->
@@ -189,8 +189,8 @@ function hoverTile(level: number) {
   hoveredLevel.value = level;
 
   gsap.to(`.level-${level}`, {
-    scale: 1.15,
-    duration: 0.3,
+    // scale: 1.15,
+    duration: 0.1,
     ease: 'back.out(2)',
   });
 
@@ -203,8 +203,8 @@ function hoverTile(level: number) {
 function unhoverTile() {
   if (hoveredLevel.value) {
     gsap.to(`.level-${hoveredLevel.value}`, {
-      scale: 1,
-      duration: 0.3,
+      // scale: 1,
+      duration: 0.1,
       ease: 'power2.out',
     });
 
@@ -388,7 +388,7 @@ onMounted(async () => {
   void nextTick().then(() => {
     setTimeout(() => {
       initAnimations();
-    }, 50);
+    }, 100);
   });
 });
 
@@ -540,6 +540,7 @@ onBeforeUnmount(() => {
   height: 100%;
   cursor: pointer;
   transition: all 0.3s ease;
+  opacity: 0;
 
   &:hover:not(.tile-locked) {
     filter: drop-shadow(0 0 20px currentColor);

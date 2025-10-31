@@ -17,20 +17,50 @@ export const randomImagesFruits = [
   { id: 16, src: 'fruits/pitaia.png', alt: 'pitaia', category: 'pitaia' },
   { id: 17, src: 'fruits/tamarindo.png', alt: 'tamarindo', category: 'tamarindo' },
   { id: 18, src: 'fruits/uva.png', alt: 'uva', category: 'uva' },
-  { id: 19, src: 'fruits/uva_roxa.png', alt: 'uva roxa', category: 'uva' }, // <-- PAR
-  { id: 20, src: 'fruits/uva_verde.png', alt: 'uva verde', category: 'uva' }, // <-- PAR
+  { id: 19, src: 'fruits/uva_roxa.png', alt: 'uva roxa', category: 'uva' },
+  { id: 20, src: 'fruits/uva_verde.png', alt: 'uva verde', category: 'uva' },
   { id: 21, src: 'fruits/jabuticaba.png', alt: 'jabuticaba', category: 'jabuticaba' },
   { id: 22, src: 'fruits/maca_verde.png', alt: 'maçã verde', category: 'maca_verde' }, // Nota: "maca_verde" é sua própria categoria
   { id: 23, src: 'fruits/goiaba.png', alt: 'goiaba cortada', category: 'goiaba' }, // Nota: "goiaba" é sua própria categoria
   { id: 24, src: 'fruits/lichia.png', alt: 'lichia', category: 'lichia' },
 ];
 export const randomImagesEmojis = [
-  { id: 101, src: 'emojis/amorzinho1.png', alt: 'amorzinho 1', category: 'amorzinho' },
-  { id: 102, src: 'emojis/amorzinho2.png', alt: 'amorzinho 2', category: 'amorzinho' },
-  { id: 103, src: 'emojis/amorzinho3.png', alt: 'amorzinho 3', category: 'amorzinho' },
-  { id: 104, src: 'emojis/diabinho.png', alt: 'diabinho', category: 'diabinho' },
-  { id: 105, src: 'emojis/dinheiro.png', alt: 'dinheiro', category: 'dinheiro' },
-  { id: 106, src: 'emojis/dinheiro-1.png', alt: 'dinheiro 1', category: 'dinheiro' }, // <-- PAR (bug corrigido)
+  {
+    id: 101,
+    src: 'emojis/amorzinho1.png',
+    alt: 'amorzinho 1',
+    category: 'amorzinho',
+  },
+  {
+    id: 102,
+    src: 'emojis/amorzinho2.png',
+    alt: 'amorzinho 2',
+    category: 'amorzinho',
+  },
+  {
+    id: 103,
+    src: 'emojis/amorzinho3.png',
+    alt: 'amorzinho 3',
+    category: 'amorzinho',
+  },
+  {
+    id: 104,
+    src: 'emojis/diabinho.png',
+    alt: 'diabinho',
+    category: 'diabinho',
+  },
+  {
+    id: 105,
+    src: 'emojis/dinheiro.png',
+    alt: 'dinheiro',
+    category: 'dinheiro',
+  },
+  {
+    id: 106,
+    src: 'emojis/dinheiro-1.png',
+    alt: 'dinheiro 1',
+    category: 'dinheiro',
+  },
   { id: 107, src: 'emojis/feliz.png', alt: 'feliz', category: 'feliz' },
   { id: 108, src: 'emojis/feliz2.png', alt: 'feliz 2', category: 'feliz 1' },
   { id: 109, src: 'emojis/feliz3.png', alt: 'feliz 3', category: 'feliz 1' },
@@ -46,7 +76,7 @@ export const randomImagesEmojis = [
   { id: 119, src: 'emojis/feliz14.png', alt: 'feliz 14', category: 'feliz 5' },
   { id: 120, src: 'emojis/feliz15.png', alt: 'feliz 15', category: 'feliz 6' },
   { id: 121, src: 'emojis/feliz16.png', alt: 'feliz 16', category: 'feliz 6' },
-  { id: 122, src: 'emojis/feliz17.png', alt: 'feliz 17', category: 'feliz 7' },
+  // { id: 122, src: 'emojis/feliz17.png', alt: 'feliz 17', category: 'feliz 7' },
   { id: 123, src: 'emojis/nojinho1.png', alt: 'nojinho 1', category: 'nojinho 1' },
   { id: 124, src: 'emojis/nojinho2.png', alt: 'nojinho 2', category: 'nojinho 1' },
   { id: 125, src: 'emojis/raivoso1.png', alt: 'raivoso 1', category: 'raivoso 1' },

@@ -2,17 +2,14 @@
 import { useAudio } from 'src/composables/useAudio';
 import { watch } from 'vue';
 import ModalDefault from 'components/organisms/ModalDefault.vue';
-import { useGameStore } from 'stores/game-store';
 import { DotLottieVue } from '@lottiefiles/dotlottie-vue';
-
+import { useRouter } from 'vue-router';
 const modelValue = defineModel({ default: false });
-const { audioGameOver, audioCongratulation } = useAudio();
-const useGame = useGameStore();
+const { audioGameOver } = useAudio();
 
-const resetLeve = async () => {
-  audioCongratulation().pause();
-  await useGame.resetLevelState();
-};
+const router = useRouter();
+
+const resetLeve = () => router.go(0);
 
 watch(
   modelValue,
