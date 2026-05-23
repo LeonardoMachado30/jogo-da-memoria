@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from 'vue';
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useGameStore } from 'stores/game-store';
 import { formattedTime, formattedTimeStart, isTimeOver } from 'src/composables/useTimer';
@@ -9,70 +9,60 @@ import ModalNextLevel from 'components/organisms/ModalNextLevel.vue';
 import { useRoute } from 'vue-router';
 import { distributeCardsAnimation } from 'src/animations/card';
 import LockOverlay from 'src/components/atoms/LockOverlay.vue';
-
 const route = useRoute();
 const useGame = useGameStore();
-
 const {
   initialFlip,
   lockBoard,
   currentScore,
-  // gridSize,
   getLevel,
   game,
   cards,
   attemptCounter,
-  flippedStatus,
-  cardRefs,
   currentConfig,
   isGameInitialized,
+  gameRoundId,
+  showModalEnd,
+  restartSignal,
 } = storeToRefs(useGame);
 
-const showModalEnd = ref<boolean>(false);
-const isOneMinuteAlert = ref<boolean>(false);
-const modalFailedGame = ref<boolean>(false);
 const levelNotUnlocked = ref<boolean>(false);
-const isProcessingEnd = ref<boolean>(false);
 const startStartCounter = ref<boolean>(true);
-
 const spinnerCount = ref<number>(3);
 const pulseKey = ref<number>(0);
+let spinnerInterval: ReturnType<typeof setInterval> | null = null;
 
-let spinnerInterval: any = null;
+const clearSpinnerInterval = (): void => {
+  if (spinnerInterval) {
+    clearInterval(spinnerInterval);
+    spinnerInterval = null;
+  }
+};
 
 const initGameRules = async (): Promise<void> => {
-  if (!isGameInitialized.value) {
-    lockBoard.value = true;
-    initialFlip.value = false;
-
-    await useGame.generateLevelCards();
-
-    await nextTick();
-
-    const cardsElements = document.querySelectorAll('.card-wrapper');
-    const gridContainer = document.querySelector('.--grid');
-
-    const notAnyElements = !gridContainer || cards.value.length === 0 || cardsElements.length === 0;
-
-    if (notAnyElements) {
-      console.warn('Elementos não encontrados para animação');
-      return;
-    }
-
-    const containerRect = gridContainer.getBoundingClientRect();
-    const centerX = containerRect.width / 2;
-    const centerY = window.innerHeight;
-
-    const props = { containerRect, centerY, centerX };
-
-    // Anima distribuição das cartas
-    cardsElements.forEach((card, index) => {
-      distributeCardsAnimation({ card, index, ...props }, () => {
-        if (index === cardsElements.length - 1) useGame.startMemorizationPhase();
-      });
-    });
-    isGameInitialized.value = true;
+  if (isGameInitialized.value) return;
+  lockBoard.value = true;
+  initialFlip.value = false;
+  await nextTick();
+  const cardsElements = document.querySelectorAll('.card-wrapper');
+  const gridContainer = document.querySelector('.--grid');
+  const notAnyElements = !gridContainer || cards.value.length === 0 || cardsElements.length === 0;
+  if (notAnyElements) {
+    console.warn('Elementos não encontrados para animação');
+    return;
   }
+  const containerRect = gridContainer.getBoundingClientRect();
+  const centerX = containerRect.width / 2;
+  const centerY = window.innerHeight;
+  const props = { containerRect, centerY, centerX };
+
+  cardsElements.forEach((card, index) => {
+    distributeCardsAnimation({ card, index, ...props }, () => {
+      if (index === cardsElements.length - 1) useGame.startMemorizationPhase();
+    });
+  });
+
+  isGameInitialized.value = true;
 };
 
 const initGame = async (): Promise<void> => {
@@ -80,8 +70,16 @@ const initGame = async (): Promise<void> => {
 
   if (currentLevelUnlock < Number(route.query.level)) {
     startStartCounter.value = false;
+
     levelNotUnlocked.value = true;
+
     return;
+  }
+
+  clearSpinnerInterval();
+
+  if (cards.value.length === 0) {
+    await useGame.resetGame();
   }
 
   startStartCounter.value = true;
@@ -92,7 +90,9 @@ const initGame = async (): Promise<void> => {
       spinnerCount.value -= 1;
     } else {
       startStartCounter.value = false;
-      clearInterval(spinnerInterval);
+
+      clearSpinnerInterval();
+
       await initGameRules();
     }
   }, 1000);
@@ -102,58 +102,55 @@ onMounted(async () => {
   await initGame();
 });
 
+onUnmounted(() => {
+  clearSpinnerInterval();
+
+  useGame.resetSession();
+});
+
 watch(
   () => route.query.level,
+
   (val) => {
     const level = Number(val) || 1;
+
     useGame.setLevel(level);
   },
+
   { immediate: true },
 );
 
 watch(formattedTime, (newTime) => {
   useGame.pulseTimerList.forEach((time) => {
     if (newTime === time) {
-      isOneMinuteAlert.value = true;
+      pulseKey.value += 1;
+
       setTimeout(() => {
-        isOneMinuteAlert.value = false;
+        pulseKey.value += 1;
       }, 2000);
     }
   });
 });
 
-watch(
-  () => flippedStatus.value,
-  async (newValue) => {
-    if (isProcessingEnd.value) return;
-
-    if (newValue.length > 0 && newValue.every((val) => val)) {
-      isProcessingEnd.value = true;
-      showModalEnd.value = true;
-
-      await useGame.endGame();
-
-      setTimeout(() => {
-        isProcessingEnd.value = false;
-      }, 500);
-    }
-  },
-  { deep: true },
-);
-
-// Detecta quando o tempo acabou
 watch(isTimeOver, (val) => {
-  if (val && !showModalEnd.value) {
-    modalFailedGame.value = true;
+  if (val) {
+    useGame.handleTimeOver();
   }
 });
 
-// Watch para mudanças de nível
+watch(restartSignal, async (signal, prev) => {
+  if (prev === undefined || signal === prev) return;
+
+  await initGame();
+});
+
 watch(
   () => game.value.currentLevel,
-  async () => {
-    await nextTick();
-    await initGame();
+
+  async (newLevel, oldLevel) => {
+    if (oldLevel === undefined || newLevel === oldLevel) return;
+
+    await useGame.restartRound();
   },
 );
 </script>
@@ -165,17 +162,23 @@ watch(
     <div v-if="startStartCounter" class="backdrop-counter spinner-backdrop">
       <div class="spinner-container">
         <div class="custom-spinner"></div>
+
         <span class="spinner-count">{{ spinnerCount }}</span>
       </div>
     </div>
 
     <div class="flex justify-around items-center text-blue text-weight-bolder text-body1 row">
       <p class="stat-box">Nivel: {{ game.currentLevel }}</p>
+
       |
+
       <p class="stat-box">Pontuação: {{ currentScore }}</p>
+
       |
+
       <p class="stat-box">Tentativas: {{ attemptCounter }}</p>
     </div>
+
     <p :key="pulseKey" class="stat-box text-center text-weight-bolder text-h4">
       {{ initialFlip ? formattedTimeStart : formattedTime }}
     </p>
@@ -184,23 +187,16 @@ watch(
       class="--grid"
       :style="{ gridTemplateColumns: `repeat(auto-fill, ${getLevel < 12 ? '17%' : '14%'})` }"
     >
-      <template v-for="(card, index) in cards" :key="`${game.currentLevel}-${index}`">
-        <div :class="['card-wrapper']">
-          <CardIndex
-            :index="index"
-            :card="card"
-            :flipped-externally="!!initialFlip || !!flippedStatus[index]"
-            :locked="lockBoard"
-            @flip="useGame.onFlip"
-            ref="cardRefs"
-            :card-color="`bg-${currentConfig.color}`"
-          />
+      <template v-for="(card, index) in cards" :key="`${gameRoundId}-${index}`">
+        <div :class="['card-wrapper']" :data-card-index="index">
+          <CardIndex :index="index" :card="card" :card-color="`bg-${currentConfig.color}`" />
         </div>
       </template>
     </div>
 
-    <ModalNextLevel v-if="showModalEnd" v-model:showModal="showModalEnd" :stars-count="3" />
-    <ModalFailedGame v-model="modalFailedGame" />
+    <ModalNextLevel v-if="showModalEnd" />
+
+    <ModalFailedGame />
   </q-page>
 </template>
 
@@ -234,7 +230,6 @@ watch(
   width: 100%;
   height: 100%;
   opacity: 0;
-  // max-width: 60px;
 }
 
 .--max-w-sm {
@@ -252,10 +247,8 @@ watch(
 .stat-box {
   color: white;
   border-radius: 4px;
-  // box-shadow: 2px 0px 6px #000;
 }
 
-/* --- Spinner Backdrop --- */
 .spinner-backdrop {
   position: fixed;
   top: 0;
@@ -272,7 +265,6 @@ watch(
   transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- Spinner and Counter --- */
 .spinner-container {
   position: relative;
   width: 144px;
@@ -295,6 +287,7 @@ watch(
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }

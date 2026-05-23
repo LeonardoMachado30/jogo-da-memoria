@@ -3,30 +3,28 @@ import { useAudio } from 'src/composables/useAudio';
 import { watch } from 'vue';
 import ModalDefault from 'components/organisms/ModalDefault.vue';
 import { DotLottieVue } from '@lottiefiles/dotlottie-vue';
-import { useRouter } from 'vue-router';
-const modelValue = defineModel({ default: false });
+import PlayAgainButton from 'components/atoms/PlayAgainButton.vue';
+import { storeToRefs } from 'pinia';
+import { useGameStore } from 'src/stores/game-store';
+
+const useGame = useGameStore();
+const { modalFailedGame } = storeToRefs(useGame);
 const { audioGameOver } = useAudio();
 
-const router = useRouter();
-
-const resetLeve = () => router.go(0);
-
 watch(
-  modelValue,
-  (newValue) => {
-    if (newValue) {
+  modalFailedGame,
+  (isOpen) => {
+    if (isOpen) {
       audioGameOver();
     }
   },
-  {
-    immediate: true,
-  },
+  { immediate: true },
 );
 </script>
 
 <template>
   <ModalDefault
-    v-model="modelValue"
+    v-model="modalFailedGame"
     class-body="flex column items-center text-center q-px-lg bg-transparent"
     class-actions="flex justify-center"
     persistent
@@ -44,14 +42,12 @@ watch(
     </template>
 
     <template #actions>
-      <q-btn
+      <PlayAgainButton
         label="Jogar Novamente"
-        text-color="black"
-        color="white"
         icon="history"
-        @click="resetLeve"
-        v-close-popup
-        class="rounded-lg full-width q-mb-sm"
+        color="white"
+        text-color="black"
+        btn-class="rounded-lg full-width q-mb-sm"
       />
 
       <q-btn
@@ -60,7 +56,6 @@ watch(
         text-color="black"
         color="cyan-6"
         icon="menu"
-        @click="resetLeve"
         v-close-popup
         class="rounded-lg full-width"
       />

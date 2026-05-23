@@ -6,14 +6,13 @@ import { useAudio } from 'src/composables/useAudio';
 import ModalDefault from 'components/organisms/ModalDefault.vue';
 import { starAnimation } from 'src/animations/star';
 import { useRoute, useRouter } from 'vue-router';
+import PlayAgainButton from 'components/atoms/PlayAgainButton.vue';
 
 const useGame = useGameStore();
-const { currentScore, game, attemptCounter } = storeToRefs(useGame);
+const { currentScore, game, attemptCounter, showModalEnd } = storeToRefs(useGame);
 
 const router = useRouter();
 const route = useRoute();
-
-const modelValue = defineModel('showModal', { default: false });
 
 const starsCount = ref(3);
 
@@ -21,8 +20,17 @@ const { audioCongratulation } = useAudio();
 
 const starsArray = ref<number[]>(Array.from({ length: starsCount.value }, (_, i) => i + 1));
 
-const nextLevel = async () => {
+const pauseCelebration = () => {
   audioCongratulation().pause();
+};
+
+const onPlayAgain = () => {
+  pauseCelebration();
+};
+
+const goToNextLevel = async () => {
+  pauseCelebration();
+  showModalEnd.value = false;
   await useGame.nextLevel();
 
   await router.push({
@@ -31,6 +39,7 @@ const nextLevel = async () => {
       level: game.value.currentLevel,
     },
   });
+
 };
 
 function animateStars() {
@@ -56,7 +65,7 @@ onMounted(() => {
 
 <template>
   <ModalDefault
-    v-model="modelValue"
+    v-model="showModalEnd"
     title=""
     icon=""
     classContainer="q-pa-lg"
@@ -100,21 +109,19 @@ onMounted(() => {
     </template>
 
     <template #actions>
-      <q-btn
-        label="Jogar novamente"
-        text-color="white"
-        icon="replay"
-        @click="nextLevel"
-        v-close-popup
+      <PlayAgainButton
         flat
-        class="rounded-lg full-width q-pa-lg q-mb-sm"
+        color="transparent"
+        text-color="white"
+        btn-class="rounded-lg full-width q-pa-lg q-mb-sm"
+        @before-restart="onPlayAgain"
       />
       <q-btn
         label="Próximo Nível"
         text-color="black"
         color="white"
         icon="arrow_forward"
-        @click="nextLevel"
+        @click="goToNextLevel"
         v-close-popup
         class="rounded-lg full-width"
       />

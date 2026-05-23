@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed } from 'vue';
 import { useAudio } from 'src/composables/useAudio';
+import { useGameStore } from 'src/stores/game-store';
 
 interface Card {
   src: string;
@@ -11,42 +12,21 @@ interface Card {
 const props = defineProps<{
   card: Card;
   index: number;
-  flippedExternally: boolean;
-  locked: boolean;
   cardColor?: string;
 }>();
 
-const emit = defineEmits<{
-  (e: 'flip', payload: { index: number; alt: string; id: number }): void;
-}>();
-
+const useGame = useGameStore();
 const { audioCard } = useAudio();
 
-const flipped = ref<boolean>(false);
-
-watch(
-  () => props.flippedExternally,
-  (newVal) => {
-    flipped.value = newVal;
-  },
-  { immediate: true },
-);
-
-const flipClass = computed<string>(() => (flipped.value ? 'flip-up' : 'flip-down'));
+const faceUp = computed(() => useGame.isCardFaceUp(props.index));
+const flipClass = computed<string>(() => (faceUp.value ? 'flip-up' : 'flip-down'));
 
 function toggleFlip(): void {
-  if (props.locked || flipped.value) return;
-  flipped.value = true;
-  audioCard();
-  emit('flip', { index: props.index, alt: props.card.alt, id: props.card.id });
-}
+  if (!useGame.canFlipCard(props.index)) return;
 
-defineExpose({
-  flipDown: (): void => {
-    audioCard();
-    flipped.value = false;
-  },
-});
+  audioCard();
+  useGame.onCardClick(props.index);
+}
 </script>
 
 <template>

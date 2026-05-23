@@ -7,6 +7,7 @@ import { randomImagesEmojis, randomImagesFruits } from 'src/model/images';
 import { ref as dbRef, get, set, update } from 'firebase/database';
 import { db } from 'src/boot/firebase';
 import { balancedLevels } from 'src/model/levels';
+import { clearPairStarBurstEffects, pairCorrectStarBurst } from 'src/animations/pairStarBurst';
 
 interface Images {
   src: string;
@@ -25,8 +26,13 @@ export interface Level {
   allowEqualCards?: number;
 }
 
-interface CardRef {
-  flipDown: () => void;
+const MISMATCH_HIDE_DELAY_MS = 1000;
+
+/** Rota única da partida em andamento. */
+export const GAME_ROUTE_PATH = '/partida';
+
+export function isGameRoute(path: string): boolean {
+  return path === GAME_ROUTE_PATH || path.startsWith(`${GAME_ROUTE_PATH}/`);
 }
 
 interface Game {
@@ -50,9 +56,14 @@ interface State {
   flippedStatus: boolean[];
   lockBoard: boolean;
   flippedCards: FlippedCard[];
-  cardRefs: (CardRef | null)[];
   cards: Images[];
   isGameInitialized: boolean;
+  gameRoundId: number;
+  showModalEnd: boolean;
+  modalFailedGame: boolean;
+  isProcessingEnd: boolean;
+  restartSignal: number;
+  isRestarting: boolean;
 }
 
 export interface FlippedCard {
@@ -70,10 +81,15 @@ export const useGameStore = defineStore('game', {
     lockBoard: false,
     flippedStatus: [],
     flippedCards: [],
-    cardRefs: [],
     usedCardsIndices: new Set<number>(),
     availableCards: [...randomImagesEmojis],
     isGameInitialized: false,
+    gameRoundId: 0,
+    showModalEnd: false,
+    modalFailedGame: false,
+    isProcessingEnd: false,
+    restartSignal: 0,
+    isRestarting: false,
     levelsConfig: [],
     game: {
       currentLevel: 1,
@@ -115,7 +131,33 @@ export const useGameStore = defineStore('game', {
     },
 
     isLevelComplete(state): boolean {
-      return state.flippedStatus.every((status) => status === true);
+      const total = state.cards.length;
+      if (total === 0) return false;
+      return (
+        state.flippedStatus.length === total &&
+        state.flippedStatus.every((status) => status === true)
+      );
+    },
+
+    /** Carta virada para cima: memorização, par encontrado ou seleção temporária. */
+    isCardFaceUp: (state) => (index: number): boolean => {
+      if (state.initialFlip) return true;
+      if (state.flippedStatus[index]) return true;
+      return state.flippedCards.some((card) => card.index === index);
+    },
+
+    /** Permite clicar para revelar (regras de tabuleiro travado / fim de jogo). */
+    canFlipCard: (state) => (index: number): boolean => {
+      if (state.lockBoard || state.initialFlip) return false;
+      if (state.showModalEnd || state.modalFailedGame) return false;
+      if (state.flippedStatus[index]) return false;
+      if (state.flippedCards.some((card) => card.index === index)) return false;
+      if (state.flippedCards.length >= 2) return false;
+      return index >= 0 && index < state.cards.length;
+    },
+
+    isPairMatch: () => (first: FlippedCard, second: FlippedCard): boolean => {
+      return first.id === second.id;
     },
   },
 
@@ -155,41 +197,138 @@ export const useGameStore = defineStore('game', {
       // Embaralha o baralho final de cartas
       const gameCards = this.shuffleArray(cards);
       this.cards = gameCards;
+      this.flippedStatus = Array(gameCards.length).fill(false);
+      this.flippedCards = [];
 
       return gameCards;
     },
 
     /**
-     * Reseta completamente o estado do nível
+     * Reseta o estado interno da rodada (cartas, pontuação, timers).
+     * Preferir `restartRound()` para reiniciar a partida a partir da UI.
      */
     async resetGame() {
-      this.isGameInitialized = true;
-
-      await this.generateLevelCards();
-
-      // Reset timers
       resetTimerStart();
       resetTimer();
+      timer().unmountedStart();
 
-      // Reset game state
       this.currentScore = 0;
       this.attemptCounter = 0;
       this.flippedCards = [];
-      this.cardRefs = [];
       this.initialFlip = false;
       this.lockBoard = true;
+      this.isGameInitialized = false;
+      this.game.acumulativeAccepts = 0;
       this.game.startTime = 0;
       this.game.endTime = 0;
-      this.game.currentLevel = this.game.currentLevel ?? 1;
 
-      // Reset flipped status baseado no novo total de cartas
-      this.flippedStatus.splice(
-        0,
-        this.flippedStatus.length,
-        ...Array(this.totalCards).fill(false),
-      );
+      await this.generateLevelCards();
+      this.gameRoundId += 1;
+    },
 
+    closeModals() {
+      this.showModalEnd = false;
+      this.modalFailedGame = false;
+    },
+
+    /**
+     * Encerra o contexto da partida (ao sair de /partida). Idempotente: pode ser chamado várias vezes.
+     * Não gera novo baralho — use `resetGame()` / `restartRound()` ao iniciar uma rodada.
+     */
+    resetSession(): void {
+      resetTimerStart();
+      resetTimer();
+      timer().unmountedStart();
+      clearPairStarBurstEffects();
+
+      this.closeModals();
+      this.isProcessingEnd = false;
+      this.isRestarting = false;
+      this.restartSignal = 0;
+
+      this.currentScore = 0;
+      this.attemptCounter = 0;
+      this.flippedCards = [];
+      this.flippedStatus = [];
+      this.cards = [];
+      this.initialFlip = false;
+      this.lockBoard = false;
       this.isGameInitialized = false;
+      this.usedCardsIndices = new Set<number>();
+
+      this.game.acumulativeAccepts = 0;
+      this.game.startTime = 0;
+      this.game.endTime = 0;
+      this.game.isAdvancing = false;
+    },
+
+    /**
+     * Reinicia a partida no nível atual: fecha modais, zera estado e sinaliza nova rodada.
+     */
+    async restartRound() {
+      if (this.isRestarting) return;
+
+      this.isRestarting = true;
+      try {
+        this.closeModals();
+        this.isProcessingEnd = false;
+        await this.resetGame();
+        this.restartSignal += 1;
+      } finally {
+        this.isRestarting = false;
+      }
+    },
+
+    async handleLevelComplete() {
+      if (this.isProcessingEnd || !this.isLevelComplete) return;
+
+      this.isProcessingEnd = true;
+      this.showModalEnd = true;
+      await this.endGame();
+
+      setTimeout(() => {
+        this.isProcessingEnd = false;
+      }, 500);
+    },
+
+    handleTimeOver() {
+      if (this.showModalEnd) return;
+
+      this.lockBoard = true;
+      this.flippedCards = [];
+      this.modalFailedGame = true;
+    },
+
+    onCardClick(index: number): void {
+      const card = this.cards[index];
+      if (!card || !this.canFlipCard(index)) return;
+
+      this.onFlip({ index, alt: card.alt, id: card.id });
+    },
+
+    markPairMatched(first: FlippedCard, second: FlippedCard): void {
+      this.game.acumulativeAccepts = 0;
+      this.flippedStatus[first.index] = true;
+      this.flippedStatus[second.index] = true;
+      this.flippedCards = [];
+      this.lockBoard = false;
+      this.incrementScore(formattedTime.value);
+      useAudio().audioPair();
+      pairCorrectStarBurst(first.index, second.index);
+      timer().mounted();
+
+      if (this.isLevelComplete) {
+        void this.handleLevelComplete();
+      }
+    },
+
+    markPairMismatched(): void {
+      this.game.acumulativeAccepts = this.game.acumulativeAccepts + 1;
+
+      setTimeout(() => {
+        this.flippedCards = [];
+        this.lockBoard = false;
+      }, MISMATCH_HIDE_DELAY_MS);
     },
 
     /**
@@ -235,19 +374,16 @@ export const useGameStore = defineStore('game', {
     async nextLevel() {
       if (this.game.isAdvancing) return;
 
+      const nextLevelNum = this.game.currentLevel + 1;
+      if (nextLevelNum > this.levelsConfig.length) {
+        console.log('🎉 Todos os níveis concluídos!');
+        return;
+      }
+
       try {
         this.game.isAdvancing = true;
-
-        const nextLevel = this.game.currentLevel + 1;
-
-        await this.updateUserCurrentLevelIfAdvance(nextLevel);
-
-        if (nextLevel <= this.levelsConfig.length) {
-          // await this.postLevel();
-          // await this.initializeLevel(nextLevel);
-        } else {
-          console.log('🎉 Todos os níveis concluídos!');
-        }
+        await this.updateUserCurrentLevelIfAdvance(nextLevelNum);
+        this.game.currentLevel = nextLevelNum;
       } catch (error) {
         console.error('Erro ao avançar de nível:', error);
       } finally {
@@ -292,39 +428,22 @@ export const useGameStore = defineStore('game', {
     },
 
     onFlip({ index, alt, id }: FlippedCard): void {
-      if (this.lockBoard) return;
+      if (!this.canFlipCard(index)) return;
 
       this.flippedCards.push({ index, alt, id });
 
-      if (this.flippedCards.length === 2) {
-        this.attemptCounter = this.attemptCounter + 1;
-        this.lockBoard = true;
+      if (this.flippedCards.length < 2) return;
 
-        const [first, second] = this.flippedCards;
+      this.attemptCounter += 1;
+      this.lockBoard = true;
 
-        if (first && second) {
-          if (first.id === second.id) {
-            // Par encontrado
-            this.game.acumulativeAccepts = 0;
-            this.flippedStatus[first.index] = true;
-            this.flippedStatus[second.index] = true;
-            this.flippedCards = [];
-            this.lockBoard = false;
-            this.incrementScore(formattedTime.value);
-            useAudio().audioPair();
+      const [first, second] = this.flippedCards;
+      if (!first || !second) return;
 
-            timer().mounted();
-          } else {
-            this.game.acumulativeAccepts = this.game.acumulativeAccepts + 1;
-            // Par errado
-            setTimeout(() => {
-              this.cardRefs[first.index]?.flipDown();
-              this.cardRefs[second.index]?.flipDown();
-              this.flippedCards = [];
-              this.lockBoard = false;
-            }, 1000);
-          }
-        }
+      if (this.isPairMatch(first, second)) {
+        this.markPairMatched(first, second);
+      } else {
+        this.markPairMismatched();
       }
     },
 

@@ -31,7 +31,6 @@ export interface GameState {
   lockBoard: boolean;
   flippedCards: FlippedCard[];
   flippedStatus: boolean[];
-  cardRefs: (CardRef | null)[];
 }
 
 export interface TimerState {
