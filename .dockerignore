@@ -1,0 +1,12 @@
+node_modules
+dist
+.quasar
+quasar.config.*.temporary.compiled*
+.git
+.github
+coverage
+.nyc_output
+test/cypress/videos
+test/cypress/screenshots
+*.log
+.DS_Store

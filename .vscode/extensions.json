@@ -13,7 +13,8 @@
     "wayou.vscode-todo-highlight",
     "gruntfuggly.todo-tree",
     "eamodio.gitlens",
-    "github.vscode-pull-request-github"
+    "github.vscode-pull-request-github",
+    "ms-vscode-remote.remote-containers"
   ],
   "unwantedRecommendations": [
     "octref.vetur",

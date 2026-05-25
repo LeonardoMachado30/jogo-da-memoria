@@ -90,6 +90,45 @@ npm i -g @quasar/cli
 yarn global add @quasar/cli
 ```
 
+### Desenvolvimento com Docker (hot reload)
+
+Requisitos: [Docker Desktop](https://www.docker.com/products/docker-desktop/) (ou Docker Engine + Compose).
+
+1. Crie o arquivo `.env` a partir do exemplo (variáveis do Firebase — ver link na seção `.env` abaixo):
+
+```bash
+cp .env.example .env
+```
+
+2. Suba o ambiente de desenvolvimento:
+
+```bash
+npm run docker:dev
+```
+
+3. Acesse [http://localhost:8080](http://localhost:8080). Alterações em `src/`, `public/` e arquivos de configuração recarregam automaticamente (HMR).
+
+Para encerrar:
+
+```bash
+npm run docker:dev:down
+```
+
+O `node_modules` fica em um volume nomeado do Docker (binários Linux), evitando conflito com dependências instaladas no Windows.
+
+### Dev Container (editar dentro do Docker no Cursor/VS Code)
+
+Requisitos: Docker Desktop + extensão [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+
+1. Crie o `.env` (mesmo passo da seção Docker acima).
+2. **Command Palette** (`Ctrl+Shift+P`) → **Dev Containers: Reopen in Container**.
+3. O editor abre em `/app` (Linux), com `node_modules` do volume, ESLint/TypeScript/Volar usando o ambiente do container.
+4. Na primeira conexão, o `postAttachCommand` sobe o `quasar dev`; acesse [http://localhost:8080](http://localhost:8080).
+
+Se o container já estiver rodando via `npm run docker:dev`, use **Dev Containers: Attach to Running Container…** e escolha `jogo-da-memoria-dev-1`.
+
+Para voltar ao ambiente local: **Dev Containers: Reopen Folder Locally**.
+
 ### Iniciar projeto no modo dev (hot-code reloading, error reporting, etc.)
 
 Sem quasar CLI Global

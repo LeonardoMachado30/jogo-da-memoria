@@ -1,0 +1,6 @@
+# Override usado pelo Dev Container: mantém o container vivo para o editor
+# e inicia o dev server após o attach (ver postAttachCommand no devcontainer.json).
+services:
+  dev:
+    entrypoint: []
+    command: sleep infinity

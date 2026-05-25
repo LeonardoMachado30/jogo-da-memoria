@@ -1,0 +1,52 @@
+{
+  "name": "Jogo da Memória (Quasar)",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.devcontainer.yml"
+  ],
+  "overrideCommand": true,
+  "postCreateCommand": "bash -lc 'if [ ! -d node_modules/@quasar/app-vite ]; then npm ci --ignore-scripts; fi && npx quasar prepare'",
+  "postAttachCommand": "bash -lc 'pgrep -f \"quasar dev\" >/dev/null 2>&1 || (nohup npm run dev > /tmp/quasar-dev.log 2>&1 &)'",
+  "service": "dev",
+  "workspaceFolder": "/app",
+  "shutdownAction": "stopCompose",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Quasar Dev Server",
+      "onAutoForward": "openBrowser",
+      "protocol": "http"
+    }
+  },
+  "remoteEnv": {
+    "CHOKIDAR_USEPOLLING": "true",
+    "QUASAR_DEV_HOST": "0.0.0.0",
+    "QUASAR_DEV_OPEN": "false"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "christian-kohler.path-intellisense",
+        "formulahendry.auto-rename-tag",
+        "formulahendry.auto-close-tag",
+        "steoates.autoimport",
+        "streetsidesoftware.code-spell-checker",
+        "naumovs.color-highlight",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": ["source.fixAll.eslint"],
+        "eslint.validate": ["javascript", "javascriptreact", "typescript", "vue"]
+      }
+    }
+  }
+}
