@@ -9,11 +9,11 @@ import { db } from 'src/boot/firebase';
 import { balancedLevels } from 'src/model/levels';
 import { clearPairStarBurstEffects, pairCorrectStarBurst } from 'src/animations/pairStarBurst';
 import {
-  loadGuestProgress,
-  saveGuestProgress,
+  loadLocalProgress,
+  saveLocalProgress,
+  accumulateLocalProgress,
   loadLevelsCache,
   saveLevelsCache,
-  addGameTotalTimes,
 } from 'src/services/guest-storage';
 
 interface Images {
@@ -398,28 +398,41 @@ export const useGameStore = defineStore('game', {
       }
     },
 
+    persistProgressDelta(
+      delta: { score: number; gameTotal: string; attemptCounter: number; currentLevel?: number },
+      uid?: string,
+    ): void {
+      const current = loadLocalProgress();
+      saveLocalProgress(accumulateLocalProgress(current, delta, uid ?? current.uid));
+    },
+
     async endGame() {
       this.game.endTime = Date.now();
       const totalTime = this.gameTimeConvertForMinutes(this.game.startTime, this.game.endTime);
       const useUser = useUserStore();
+      const uid = useUser.getUser?.uid;
 
-      if (useUser.getUser?.uid) {
-        await useUser.updateRanking(useUser.getUser.uid, {
+      this.persistProgressDelta(
+        {
           score: this.currentScore,
           gameTotal: totalTime,
           attemptCounter: this.attemptCounter,
-          ...useUser.getUser,
-        });
-        return;
-      }
+        },
+        uid,
+      );
 
-      const guest = loadGuestProgress();
-      saveGuestProgress({
-        ...guest,
-        score: guest.score + this.currentScore,
-        gameTotal: addGameTotalTimes(guest.gameTotal, totalTime),
-        attemptCounter: guest.attemptCounter + this.attemptCounter,
-      });
+      if (uid && useUser.getUser) {
+        try {
+          await useUser.updateRanking(uid, {
+            score: this.currentScore,
+            gameTotal: totalTime,
+            attemptCounter: this.attemptCounter,
+            ...useUser.getUser,
+          });
+        } catch (error) {
+          console.warn('Ranking não sincronizado na nuvem (offline?):', error);
+        }
+      }
     },
 
     incrementScore(formattedTime: string) {
@@ -586,27 +599,8 @@ export const useGameStore = defineStore('game', {
     //   }
     // },
 
-    async getUserCurrentLevelUnlock(uid?: string): Promise<number> {
-      const useUser = useUserStore();
-      const getUid = uid ?? useUser.getUser?.uid;
-
-      if (!getUid) {
-        return loadGuestProgress().currentLevel;
-      }
-
-      try {
-        const userRankingRef = dbRef(db, `ranking/${getUid}/currentLevel`);
-        const snapshot = await get(userRankingRef);
-
-        if (!snapshot.exists()) {
-          return 1;
-        }
-
-        return Math.max(1, Number(snapshot.val()) || 1);
-      } catch (error) {
-        console.error(`Erro ao buscar currentLevel do usuário ${getUid}:`, error);
-        return loadGuestProgress().currentLevel;
-      }
+    getUserCurrentLevelUnlock(): number {
+      return loadLocalProgress().currentLevel;
     },
 
     async updateUserCurrentLevelIfAdvance(nextLevel: number, uid?: string): Promise<void> {
@@ -617,20 +611,16 @@ export const useGameStore = defineStore('game', {
         return;
       }
 
+      this.persistProgressDelta({ score: 0, gameTotal: '00:00', attemptCounter: 0, currentLevel: nextLevel }, getUid);
+
       if (!getUid) {
-        const guest = loadGuestProgress();
-        saveGuestProgress({
-          ...guest,
-          currentLevel: Math.max(guest.currentLevel, nextLevel),
-        });
         return;
       }
 
       try {
         await update(dbRef(db, `ranking/${getUid}`), { currentLevel: nextLevel });
       } catch (error) {
-        console.error(`Erro ao atualizar currentLevel do usuário ${getUid}:`, error);
-        throw error;
+        console.warn(`currentLevel não sincronizado na nuvem (offline?):`, error);
       }
     },
   },

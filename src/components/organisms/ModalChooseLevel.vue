@@ -25,7 +25,7 @@ async function goToLevel(level: number) {
     title="Selecione o nível"
     class-body="flex column gap-4 q-px-lg"
   >
-    <p class="text-red" v-if="!useUser.getUser">
+    <p class="text-red" v-if="!useUser.isLoggedIn">
       Seu progresso é salvo localmente neste dispositivo. A classificação global fica disponível após
       entrar com Google.
     </p>

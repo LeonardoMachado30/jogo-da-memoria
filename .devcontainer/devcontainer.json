@@ -6,14 +6,14 @@
   ],
   "overrideCommand": true,
   "postCreateCommand": "bash -lc 'if [ ! -d node_modules/@quasar/app-vite ]; then npm ci --ignore-scripts; fi && npx quasar prepare'",
-  "postAttachCommand": "bash -lc 'pgrep -f \"quasar dev\" >/dev/null 2>&1 || (nohup npm run dev > /tmp/quasar-dev.log 2>&1 &)'",
+  "postAttachCommand": "bash -lc 'pgrep -f \"quasar dev\" >/dev/null 2>&1 || (nohup npm run dev:pwa > /tmp/quasar-dev.log 2>&1 &)'",
   "service": "dev",
   "workspaceFolder": "/app",
   "shutdownAction": "stopCompose",
   "forwardPorts": [8080],
   "portsAttributes": {
     "8080": {
-      "label": "Quasar Dev Server",
+      "label": "Quasar PWA Dev Server",
       "onAutoForward": "openBrowser",
       "protocol": "http"
     }

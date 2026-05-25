@@ -41,11 +41,11 @@ jobs:
       # - name: Run E2E Tests (Cypress)
       #   run: npm run test:e2e:ci
 
-      - name: Build Quasar App
-        run: npm run build
+      - name: Build Quasar PWA
+        run: npm run build:pwa
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist/spa
+          publish_dir: ./dist/pwa

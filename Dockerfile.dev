@@ -9,4 +9,4 @@ RUN npm ci --ignore-scripts
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "if [ ! -d node_modules/@quasar/app-vite ]; then npm ci --ignore-scripts; fi && npx quasar prepare && exec npm run dev"]
+ENTRYPOINT ["sh", "-c", "if [ ! -d node_modules/@quasar/app-vite ]; then npm ci --ignore-scripts; fi && npx quasar prepare && exec npm run dev:pwa"]

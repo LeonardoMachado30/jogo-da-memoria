@@ -4,6 +4,11 @@
     <div class="flex column items-center" style="margin-top: -200px">
       <h1 class="text-blue-3 m-none text-center title bunguee-regular text-shadow">MEMORIX</h1>
 
+      <PlayerProgressSummary
+        class="animate-button"
+        :refresh-key="progressRefreshKey"
+      />
+
       <q-btn
         icon="play_arrow"
         class="bg-cyan-3 text-black q-mb-xl rounded-full shadow-sm animate-button"
@@ -14,10 +19,7 @@
         @mouseenter="audioMouseHover()"
       />
 
-      <div v-if="useUser.getUser == null" class="animate-button flex column items-center">
-        <p v-if="guestSummary" class="text-white text-caption q-mb-xs no-margin text-center">
-          Modo local: nível {{ guestSummary.currentLevel }} · {{ guestSummary.score }} pts
-        </p>
+      <div v-if="!isLoggedIn" class="animate-button flex column items-center">
         <BtnLoginGoogle />
       </div>
 
@@ -31,7 +33,7 @@
       />
 
       <q-btn
-        v-if="useUser.getUser !== null"
+        v-if="isLoggedIn"
         rounded
         class="bg-cyan-3 text-black q-mb-sm full-width shadow-sm animate-button"
         @click="modalRanking = !modalRanking"
@@ -52,7 +54,7 @@
         @mouseenter="audioMouseHover()"
       />
 
-      <template v-if="useUser.getUser?.permission === 'ADMIN'">
+      <template v-if="getUser?.permission === 'ADMIN'">
         <p class="createdBy">ADMINISTRADOR</p>
         <q-btn
           label="Todas as cartas"
@@ -92,10 +94,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineAsyncComponent, onMounted, computed } from 'vue';
+import { ref, defineAsyncComponent, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useUserStore } from 'stores/user-store';
 import { useAudio } from 'src/composables/useAudio';
-import { loadGuestProgress, hasGuestProgress } from 'src/services/guest-storage';
+import PlayerProgressSummary from 'src/components/molecules/PlayerProgressSummary.vue';
 import gsap from 'gsap';
 import { useRouter } from 'vue-router';
 // import { titleAnimation } from 'src/animations/text';
@@ -107,18 +110,13 @@ const ModalCredits = defineAsyncComponent(() => import('components/organisms/Mod
 
 const { audioMouseHover, audioClick } = useAudio();
 const useUser = useUserStore();
+const { getUser, isLoggedIn } = storeToRefs(useUser);
 const router = useRouter();
 const modalSettings = ref(false);
 const modalRanking = ref(false);
 const modalSchool = ref(false);
 const modalCredits = ref(false);
-
-const guestSummary = computed(() => {
-  if (useUser.getUser) return null;
-  if (!hasGuestProgress()) return null;
-  const guest = loadGuestProgress();
-  return { currentLevel: guest.currentLevel, score: guest.score };
-});
+const progressRefreshKey = ref(0);
 
 const tl = gsap.timeline();
 
@@ -133,8 +131,13 @@ function onStartGame() {
   }
 }
 
-onMounted(() => {
-  // titleAnimation(tl);
+onMounted(async () => {
+  const uid = getUser.value?.uid;
+  if (uid) {
+    await useUser.hydrateLocalProgressFromFirebase(uid);
+    progressRefreshKey.value += 1;
+  }
+
   const title = document.querySelectorAll('.title');
 
   // const titleRect = title.

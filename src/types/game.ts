@@ -60,10 +60,14 @@ export interface GameScore {
   levelsProgress: LevelProgress[];
 }
 
-/** Progresso persistido localmente para jogadores sem login. */
+/** Progresso persistido localmente (convidado ou espelho offline da conta). */
 export interface GuestProgress {
   score: number;
   gameTotal: string;
   attemptCounter: number;
   currentLevel: number;
+  uid?: string;
 }
+
+/** Alias semântico — mesma estrutura que GuestProgress. */
+export type LocalProgress = GuestProgress;

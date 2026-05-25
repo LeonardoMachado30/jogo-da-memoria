@@ -381,8 +381,8 @@ function initAnimations() {
   });
 }
 
-onMounted(async () => {
-  unlockedLevels.value = await useGame.getUserCurrentLevelUnlock();
+onMounted(() => {
+  unlockedLevels.value = useGame.getUserCurrentLevelUnlock();
 
   void nextTick().then(() => {
     setTimeout(() => {

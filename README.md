@@ -90,9 +90,11 @@ npm i -g @quasar/cli
 yarn global add @quasar/cli
 ```
 
-### Desenvolvimento com Docker (hot reload)
+### Desenvolvimento com Docker (PWA + hot reload)
 
 Requisitos: [Docker Desktop](https://www.docker.com/products/docker-desktop/) (ou Docker Engine + Compose).
+
+O container sobe sempre em modo **PWA** (`quasar dev -m pwa`), com service worker e manifest para testar instalação e comportamento offline.
 
 1. Crie o arquivo `.env` a partir do exemplo (variáveis do Firebase — ver link na seção `.env` abaixo):
 
@@ -107,6 +109,8 @@ npm run docker:dev
 ```
 
 3. Acesse [http://localhost:8080](http://localhost:8080). Alterações em `src/`, `public/` e arquivos de configuração recarregam automaticamente (HMR).
+
+> **Instalação PWA:** no `localhost`, o prompt de instalar pode não aparecer em todos os navegadores (critérios de HTTPS/origem). Para SPA sem PWA, use `npm run dev` no host.
 
 Para encerrar:
 
@@ -123,7 +127,7 @@ Requisitos: Docker Desktop + extensão [Dev Containers](https://marketplace.visu
 1. Crie o `.env` (mesmo passo da seção Docker acima).
 2. **Command Palette** (`Ctrl+Shift+P`) → **Dev Containers: Reopen in Container**.
 3. O editor abre em `/app` (Linux), com `node_modules` do volume, ESLint/TypeScript/Volar usando o ambiente do container.
-4. Na primeira conexão, o `postAttachCommand` sobe o `quasar dev`; acesse [http://localhost:8080](http://localhost:8080).
+4. Na primeira conexão, o `postAttachCommand` sobe o `quasar dev -m pwa`; acesse [http://localhost:8080](http://localhost:8080).
 
 Se o container já estiver rodando via `npm run docker:dev`, use **Dev Containers: Attach to Running Container…** e escolha `jogo-da-memoria-dev-1`.
 
@@ -171,32 +175,40 @@ Imagens da API
 As imagens que deveriam estar na API estão diretamente no projeto, pois, o meu bucket do firebase estava solicitando pagando por eu já ter usado uma grande parte do bucket, também não foi possivel achar um bucket gratuito com qualidade é velocidade, 
 então foi preferivel da minha parte manter as imagens nos arquivos locais, também foi o único requisito do case que não consegui seguir a risca por motivos financeiro.
 
-Jogar sem logar
+Jogar sem logar e offline
 
-O jogo funciona **offline ou online** sem login Google. O progresso (níveis desbloqueados, pontuação, tentativas e tempo acumulado) é salvo no **localStorage** deste dispositivo.
+O jogo funciona **offline ou online**, com ou sem login Google. O progresso (níveis desbloqueados, pontuação, tentativas e tempo acumulado) é **sempre espelhado** no `localStorage` para permitir partidas offline. Com login, os dados também são enviados ao Firebase quando há rede.
 
 ### Chaves no localStorage
 
 | Chave | Conteúdo |
 |-------|----------|
-| `memorix_guest_progress` | Progresso do convidado: `score`, `gameTotal`, `attemptCounter`, `currentLevel` |
+| `memorix_guest_progress` | Espelho local do progresso (`score`, `gameTotal`, `attemptCounter`, `currentLevel`, `uid` opcional) |
 | `memorix_levels_cache` | Cache da configuração de níveis vinda do Firebase (fallback offline) |
+| `memorix_pwa_install_dismissed` | Pop-up de instalação PWA foi fechado pelo usuário |
 | `user` | Sessão do jogador logado (perfil Google) |
 | `isPauseMusic` | Preferência de música |
 
 ### Sincronização no login
 
-Ao entrar com Google, os dados de `memorix_guest_progress` são enviados ao Firebase (`ranking/{uid}`) e a chave local é removida:
+Ao entrar com Google, os dados locais são mesclados com `ranking/{uid}` no Firebase e o espelho local é **atualizado** (não removido):
 
 - **Nível desbloqueado:** maior valor entre local e nuvem
-- **Pontuação e tentativas:** soma dos dois
+- **Pontuação e tentativas (merge no login):** soma dos dois
 - **Tempo total (`gameTotal`):** soma dos tempos em formato `MM:SS`
 
-Se o login falhar (rede, popup bloqueado), o progresso local é **mantido**.
+Após o login, `hydrateLocalProgressFromFirebase` mantém o local alinhado à nuvem quando online.
 
 ### Níveis offline
 
 Ordem de carregamento dos níveis: Firebase → cache local → `src/model/levels.ts` (embutido no app).
+
+### PWA (web e app instalado)
+
+O deploy em produção usa `npm run build:pwa` (GitHub Pages publica `dist/pwa`).
+
+- **Instalar:** na web, um pop-up convida a instalar o app (fechável). Em Chrome/Edge, o botão Instalar aciona o fluxo nativo; no iOS Safari, são exibidas instruções para “Adicionar à Tela de Início”.
+- **Atualizar:** após um novo deploy, o service worker detecta nova versão e o componente `PwaUpdatePrompt` oferece recarregar — vale para a aba no navegador e para o app instalado.
 
 .env
 

@@ -66,7 +66,7 @@ const initGameRules = async (): Promise<void> => {
 };
 
 const initGame = async (): Promise<void> => {
-  const currentLevelUnlock = await useGame.getUserCurrentLevelUnlock();
+  const currentLevelUnlock = useGame.getUserCurrentLevelUnlock();
 
   if (currentLevelUnlock < Number(route.query.level)) {
     startStartCounter.value = false;

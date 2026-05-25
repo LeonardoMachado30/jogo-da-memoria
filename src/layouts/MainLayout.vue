@@ -108,9 +108,12 @@ watch(isHome, async (novo) => {
 
 // Garante que ao montar já esteja no estado correto
 onMounted(async () => {
-  // await useGame.setLevel();
-  // await useGame.updateAllRankingsCurrentLevelTo10();
   await useGame.getLevels();
+
+  const uid = getUser.value?.uid;
+  if (uid) {
+    await useUser.hydrateLocalProgressFromFirebase(uid);
+  }
 
   animateBackground(isHome.value);
 });
@@ -122,17 +125,11 @@ function resetLevel() {
 const logout = async () => {
   try {
     await useUser.logout();
-
-    useUser.user = null;
-    localStorage.removeItem('user');
-
-    if (router.currentRoute.value.fullPath === '/') {
-      window.location.reload();
-    } else {
+    if (router.currentRoute.value.fullPath !== '/') {
       await router.push('/');
     }
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 };
 </script>

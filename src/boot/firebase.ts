@@ -1,8 +1,9 @@
 import { defineBoot } from '#q-app/wrappers';
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { VueFire, VueFireAuth } from 'vuefire';
 import { getDatabase } from 'firebase/database';
+import { useUserStore, type User } from 'src/stores/user-store';
 
 const firebaseApp = initializeApp({
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -22,6 +23,29 @@ export default defineBoot(({ app }) => {
   app.use(VueFire, {
     firebaseApp,
     modules: [VueFireAuth()],
+  });
+
+  const userStore = useUserStore();
+  userStore.hydrateFromLocalStorage();
+
+  onAuthStateChanged(auth, (firebaseUser) => {
+    if (!firebaseUser) {
+      userStore.clearSession();
+      return;
+    }
+
+    void userStore.getUserData(firebaseUser.uid).then((existing) => {
+      const user: User = {
+        nome: firebaseUser.displayName,
+        email: firebaseUser.email,
+        photoURL: firebaseUser.photoURL,
+        uid: firebaseUser.uid,
+      };
+      if (existing?.permission) {
+        user.permission = existing.permission;
+      }
+      userStore.setUser(user);
+    });
   });
 });
 
