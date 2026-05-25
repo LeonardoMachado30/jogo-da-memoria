@@ -38,13 +38,13 @@
                 <p class="text-bold">
                   {{
                     user.gameTotal !== undefined
-                      ? (Math.floor(user.gameTotal / 3600) > 0
-                          ? Math.floor(user.gameTotal / 3600) + 'h '
+                      ? (Math.floor(Number(user.gameTotal) / 3600) > 0
+                          ? Math.floor(Number(user.gameTotal) / 3600) + 'h '
                           : '') +
-                        (Math.floor((user.gameTotal % 3600) / 60) > 0
-                          ? Math.floor((user.gameTotal % 3600) / 60) + 'm '
+                        (Math.floor((Number(user.gameTotal) % 3600) / 60) > 0
+                          ? Math.floor((Number(user.gameTotal) % 3600) / 60) + 'm '
                           : '') +
-                        (user.gameTotal % 60) +
+                        (Number(user.gameTotal) % 60) +
                         's'
                       : '0s'
                   }}
