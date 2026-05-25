@@ -12,6 +12,13 @@ import {
 } from 'firebase/database';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { db } from 'src/boot/firebase';
+import {
+  loadGuestProgress,
+  clearGuestProgress,
+  hasGuestProgress,
+  addGameTotalTimes,
+} from 'src/services/guest-storage';
+import type { GuestProgress } from 'src/types/game';
 
 export interface User {
   nome: string | null;
@@ -27,8 +34,9 @@ interface UserState {
 
 export interface Ranking extends User {
   attemptCounter: number;
-  gameTotal: number;
+  gameTotal: string;
   score: number;
+  currentLevel?: number;
 }
 
 const usersRef = (uid: string) => dbRef(db, `users/${uid}`);
@@ -148,7 +156,42 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    async loginWithGoogle() {
+    mergeGuestWithRanking(remote: Ranking, guest: GuestProgress): Partial<Ranking> {
+      return {
+        currentLevel: Math.max(remote.currentLevel ?? 1, guest.currentLevel),
+        score: (remote.score ?? 0) + guest.score,
+        attemptCounter: (remote.attemptCounter ?? 0) + guest.attemptCounter,
+        gameTotal: addGameTotalTimes(
+          typeof remote.gameTotal === 'string' ? remote.gameTotal : '00:00',
+          guest.gameTotal,
+        ),
+      };
+    },
+
+    async syncGuestProgressToAccount(uid: string, user: User): Promise<boolean> {
+      if (!hasGuestProgress()) {
+        return false;
+      }
+
+      const guest = loadGuestProgress();
+      const rankingUserRef = dbRef(db, `ranking/${uid}`);
+      const snapshot = await get(rankingUserRef);
+
+      if (!snapshot.exists()) {
+        await this.addRaking(uid, {
+          ...guest,
+          ...user,
+        });
+      } else {
+        const remote = snapshot.val() as Ranking;
+        await update(rankingUserRef, this.mergeGuestWithRanking(remote, guest));
+      }
+
+      clearGuestProgress();
+      return true;
+    },
+
+    async loginWithGoogle(): Promise<{ synced: boolean }> {
       try {
         const auth = getAuth();
         const provider = new GoogleAuthProvider();
@@ -161,23 +204,35 @@ export const useUserStore = defineStore('user', {
         };
 
         const existingUser = await this.getUserData(result.user.uid);
+        const guest = loadGuestProgress();
+        const guestHasData = hasGuestProgress();
 
-        // Se o usuario não exisitir no banco cria
         if (!existingUser) {
           await this.addUser(result.user.uid, user);
           await this.addRaking(result.user.uid, {
-            score: 0,
-            gameTotal: 0,
-            attemptCounter: 0,
+            score: guestHasData ? guest.score : 0,
+            gameTotal: guestHasData ? guest.gameTotal : '00:00',
+            attemptCounter: guestHasData ? guest.attemptCounter : 0,
+            currentLevel: guestHasData ? guest.currentLevel : 1,
             ...user,
           });
+          if (guestHasData) {
+            clearGuestProgress();
+          }
+          this.setUser(user);
+          return { synced: guestHasData };
         }
 
-        user.permission = existingUser.permission ?? null;
-
+        if (existingUser.permission) {
+          user.permission = existingUser.permission;
+        }
         this.setUser(user);
+
+        const synced = await this.syncGuestProgressToAccount(result.user.uid, user);
+        return { synced };
       } catch (error) {
         console.error('Erro no login com Google:', error);
+        throw error;
       }
     },
 
@@ -211,9 +266,12 @@ export const useUserStore = defineStore('user', {
         const ranking = snapshot.exists() ? snapshot.val() : null;
 
         const rankingConcat = {
-          attemptCounter: ranking.attemptCounter + newData.attemptCounter,
-          gameTotal: ranking.gameTotal + newData.gameTotal,
-          score: ranking.score + newData.score,
+          attemptCounter: (ranking.attemptCounter ?? 0) + (newData.attemptCounter ?? 0),
+          gameTotal: addGameTotalTimes(
+            typeof ranking.gameTotal === 'string' ? ranking.gameTotal : '00:00',
+            newData.gameTotal ?? '00:00',
+          ),
+          score: (ranking.score ?? 0) + (newData.score ?? 0),
         };
 
         await update(rankingRef, rankingConcat);

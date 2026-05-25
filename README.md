@@ -173,7 +173,30 @@ então foi preferivel da minha parte manter as imagens nos arquivos locais, tamb
 
 Jogar sem logar
 
-Eu decidi colocar um modo de jogo sem o login do google, pois, acredito que a acessibilidade ao conteúdo seja bastante importante e torna o sistema mais convidativo.
+O jogo funciona **offline ou online** sem login Google. O progresso (níveis desbloqueados, pontuação, tentativas e tempo acumulado) é salvo no **localStorage** deste dispositivo.
+
+### Chaves no localStorage
+
+| Chave | Conteúdo |
+|-------|----------|
+| `memorix_guest_progress` | Progresso do convidado: `score`, `gameTotal`, `attemptCounter`, `currentLevel` |
+| `memorix_levels_cache` | Cache da configuração de níveis vinda do Firebase (fallback offline) |
+| `user` | Sessão do jogador logado (perfil Google) |
+| `isPauseMusic` | Preferência de música |
+
+### Sincronização no login
+
+Ao entrar com Google, os dados de `memorix_guest_progress` são enviados ao Firebase (`ranking/{uid}`) e a chave local é removida:
+
+- **Nível desbloqueado:** maior valor entre local e nuvem
+- **Pontuação e tentativas:** soma dos dois
+- **Tempo total (`gameTotal`):** soma dos tempos em formato `MM:SS`
+
+Se o login falhar (rede, popup bloqueado), o progresso local é **mantido**.
+
+### Níveis offline
+
+Ordem de carregamento dos níveis: Firebase → cache local → `src/model/levels.ts` (embutido no app).
 
 .env
 

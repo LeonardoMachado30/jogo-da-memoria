@@ -14,7 +14,10 @@
         @mouseenter="audioMouseHover()"
       />
 
-      <div v-if="useUser.getUser == null" class="animate-button">
+      <div v-if="useUser.getUser == null" class="animate-button flex column items-center">
+        <p v-if="guestSummary" class="text-white text-caption q-mb-xs no-margin text-center">
+          Modo local: nível {{ guestSummary.currentLevel }} · {{ guestSummary.score }} pts
+        </p>
         <BtnLoginGoogle />
       </div>
 
@@ -89,9 +92,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineAsyncComponent, onMounted } from 'vue';
+import { ref, defineAsyncComponent, onMounted, computed } from 'vue';
 import { useUserStore } from 'stores/user-store';
 import { useAudio } from 'src/composables/useAudio';
+import { loadGuestProgress, hasGuestProgress } from 'src/services/guest-storage';
 import gsap from 'gsap';
 import { useRouter } from 'vue-router';
 // import { titleAnimation } from 'src/animations/text';
@@ -108,6 +112,13 @@ const modalSettings = ref(false);
 const modalRanking = ref(false);
 const modalSchool = ref(false);
 const modalCredits = ref(false);
+
+const guestSummary = computed(() => {
+  if (useUser.getUser) return null;
+  if (!hasGuestProgress()) return null;
+  const guest = loadGuestProgress();
+  return { currentLevel: guest.currentLevel, score: guest.score };
+});
 
 const tl = gsap.timeline();
 

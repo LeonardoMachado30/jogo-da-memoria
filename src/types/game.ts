@@ -59,3 +59,11 @@ export interface GameScore {
   totalAttempts: number;
   levelsProgress: LevelProgress[];
 }
+
+/** Progresso persistido localmente para jogadores sem login. */
+export interface GuestProgress {
+  score: number;
+  gameTotal: string;
+  attemptCounter: number;
+  currentLevel: number;
+}

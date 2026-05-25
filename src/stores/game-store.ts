@@ -8,6 +8,13 @@ import { ref as dbRef, get, set, update } from 'firebase/database';
 import { db } from 'src/boot/firebase';
 import { balancedLevels } from 'src/model/levels';
 import { clearPairStarBurstEffects, pairCorrectStarBurst } from 'src/animations/pairStarBurst';
+import {
+  loadGuestProgress,
+  saveGuestProgress,
+  loadLevelsCache,
+  saveLevelsCache,
+  addGameTotalTimes,
+} from 'src/services/guest-storage';
 
 interface Images {
   src: string;
@@ -392,20 +399,27 @@ export const useGameStore = defineStore('game', {
     },
 
     async endGame() {
+      this.game.endTime = Date.now();
+      const totalTime = this.gameTimeConvertForMinutes(this.game.startTime, this.game.endTime);
       const useUser = useUserStore();
-      if (useUser.getUser) {
-        this.game.endTime = Date.now();
-        const totalTime = this.gameTimeConvertForMinutes(this.game.startTime, this.game.endTime);
 
-        if (useUser.getUser?.uid) {
-          await useUser.updateRanking(useUser.getUser.uid, {
-            score: this.currentScore,
-            gameTotal: totalTime,
-            attemptCounter: this.attemptCounter,
-            ...useUser.getUser,
-          });
-        }
+      if (useUser.getUser?.uid) {
+        await useUser.updateRanking(useUser.getUser.uid, {
+          score: this.currentScore,
+          gameTotal: totalTime,
+          attemptCounter: this.attemptCounter,
+          ...useUser.getUser,
+        });
+        return;
       }
+
+      const guest = loadGuestProgress();
+      saveGuestProgress({
+        ...guest,
+        score: guest.score + this.currentScore,
+        gameTotal: addGameTotalTimes(guest.gameTotal, totalTime),
+        attemptCounter: guest.attemptCounter + this.attemptCounter,
+      });
     },
 
     incrementScore(formattedTime: string) {
@@ -469,6 +483,20 @@ export const useGameStore = defineStore('game', {
       console.log('level criado com sucesso');
     },
 
+    applyLevelsConfig(levelArr: Level[]): Level[] {
+      this.levelsConfig = levelArr;
+      return levelArr;
+    },
+
+    getLevelsFallback(): Level[] {
+      const cached = loadLevelsCache();
+      if (cached?.length) {
+        return this.applyLevelsConfig(cached);
+      }
+      const fallback = [...balancedLevels].sort((a, b) => a.level - b.level);
+      return this.applyLevelsConfig(fallback);
+    },
+
     async getLevels(): Promise<Level[]> {
       try {
         const snapshot = await get(dbRef(db, 'levels'));
@@ -476,15 +504,15 @@ export const useGameStore = defineStore('game', {
         if (snapshot.exists()) {
           const levelsData = snapshot.val() as Record<string, Level>;
           const levelArr = Object.values(levelsData).sort((a, b) => a.level - b.level);
-          this.levelsConfig = levelArr;
-          return levelArr;
-        } else {
-          console.warn('Nenhum level encontrado no Firebase');
-          return [];
+          saveLevelsCache(levelArr);
+          return this.applyLevelsConfig(levelArr);
         }
+
+        console.warn('Nenhum level encontrado no Firebase, usando fallback local');
+        return this.getLevelsFallback();
       } catch (error) {
         console.error('Erro ao obter levels:', error);
-        return [];
+        return this.getLevelsFallback();
       }
     },
     async updateLevels(levels: Level[]) {
@@ -559,33 +587,49 @@ export const useGameStore = defineStore('game', {
     // },
 
     async getUserCurrentLevelUnlock(uid?: string): Promise<number> {
-      try {
-        const useUser = useUserStore();
-        const getUid = uid ?? useUser.getUser.uid;
+      const useUser = useUserStore();
+      const getUid = uid ?? useUser.getUser?.uid;
 
+      if (!getUid) {
+        return loadGuestProgress().currentLevel;
+      }
+
+      try {
         const userRankingRef = dbRef(db, `ranking/${getUid}/currentLevel`);
         const snapshot = await get(userRankingRef);
 
         if (!snapshot.exists()) {
-          return 0;
+          return 1;
         }
 
-        return snapshot.val();
+        return Math.max(1, Number(snapshot.val()) || 1);
       } catch (error) {
-        console.error(`Erro ao buscar currentLevel do usuário ${uid}:`, error);
-        throw error;
+        console.error(`Erro ao buscar currentLevel do usuário ${getUid}:`, error);
+        return loadGuestProgress().currentLevel;
       }
     },
 
     async updateUserCurrentLevelIfAdvance(nextLevel: number, uid?: string): Promise<void> {
+      const useUser = useUserStore();
+      const getUid = uid ?? useUser.getUser?.uid;
+
+      if (nextLevel <= this.game.currentLevel) {
+        return;
+      }
+
+      if (!getUid) {
+        const guest = loadGuestProgress();
+        saveGuestProgress({
+          ...guest,
+          currentLevel: Math.max(guest.currentLevel, nextLevel),
+        });
+        return;
+      }
+
       try {
-        const useUser = useUserStore();
-        const getUid = uid ?? useUser.getUser.uid;
-        if (nextLevel > this.game.currentLevel) {
-          await update(dbRef(db, `ranking/${getUid}`), { currentLevel: nextLevel });
-        }
+        await update(dbRef(db, `ranking/${getUid}`), { currentLevel: nextLevel });
       } catch (error) {
-        console.error(`Erro ao atualizar currentLevel do usuário ${uid}:`, error);
+        console.error(`Erro ao atualizar currentLevel do usuário ${getUid}:`, error);
         throw error;
       }
     },

@@ -26,7 +26,8 @@ async function goToLevel(level: number) {
     class-body="flex column gap-4 q-px-lg"
   >
     <p class="text-red" v-if="!useUser.getUser">
-      ATENÇÂO: Seus pontos não são salvos e você não podera ver as classificações.
+      Seu progresso é salvo localmente neste dispositivo. A classificação global fica disponível após
+      entrar com Google.
     </p>
 
     <div class="flex justify-center items-center gap-4">

@@ -14,9 +14,20 @@ const loading = ref(false);
 const loginWithGoogle = async () => {
   loading.value = true;
   try {
-    await useUser.loginWithGoogle();
+    const { synced } = await useUser.loginWithGoogle();
+    if (synced) {
+      $q.notify({
+        message: 'Progresso sincronizado com sua conta',
+        color: 'positive',
+        icon: 'cloud_done',
+      });
+    }
   } catch (error) {
-    $q.notify({ message: 'Erro ao fazer login com Google', color: 'negative', icon: 'warning' });
+    $q.notify({
+      message: 'Erro ao fazer login com Google. Seu progresso local foi mantido.',
+      color: 'negative',
+      icon: 'warning',
+    });
     console.error('Erro no login com Google:', error);
   } finally {
     loading.value = false;

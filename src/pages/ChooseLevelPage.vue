@@ -111,12 +111,12 @@
         </div>
       </transition>
 
-      <!-- Aviso de login -->
-      <div v-if="user" class="login-warning">
+      <!-- Aviso modo convidado -->
+      <div v-if="!user" class="login-warning">
         <svg class="warning-icon" viewBox="0 0 24 24" fill="currentColor">
           <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
         </svg>
-        <span>LOGIN NECESSÁRIO PARA CONTABILIZAR CONQUISTAS</span>
+        <span>Progresso salvo neste dispositivo. Entre com Google para sincronizar na nuvem.</span>
       </div>
     </div>
   </q-page>
@@ -143,8 +143,7 @@ const { user } = storeToRefs(useUser);
 const hoveredLevel = ref<number | null>(null);
 const animationTimeline = ref<GSAPTimeline | null>(null);
 
-// Simula níveis desbloqueados (ajuste conforme sua lógica)
-const unlockedLevels = ref(10); // Todos desbloqueados para demo
+const unlockedLevels = ref(1);
 
 // Mapeia cores do Quasar para hexadecimal
 const colorMap: Record<string, string> = {
