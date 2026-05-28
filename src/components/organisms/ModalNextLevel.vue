@@ -68,15 +68,13 @@ onMounted(() => {
     v-model="showModalEnd"
     title=""
     icon=""
-    classContainer="q-pa-lg"
-    styleContainer="border-radius: 16px"
-    class-body="flex column items-center text-center"
-    class-actions="flex justify-center"
+    classContainer="modal-next-level"
+    class-body="flex column items-center text-center modal-next-level__body"
+    class-actions="flex column justify-center modal-next-level__actions"
     persistent
   >
     <template #default>
-      <!-- Container das estrelas -->
-      <div class="full-width flex justify-center items-center q-mb-md" style="min-height: 120px">
+      <div class="stars-stage full-width flex justify-center items-center">
         <div class="stars-container flex justify-center items-center">
           <div v-for="star in starsArray" :key="`star-${star}`" class="star-wrapper">
             <q-img
@@ -90,12 +88,12 @@ onMounted(() => {
         </div>
       </div>
 
-      <p class="text-h4 text-bold text-principal q-mb-md">Parabéns!</p>
-      <p class="text-h5 text-bold text-principal q-px-lg q-mb-md">
+      <p class="modal-next-level__title text-bold text-principal">Parabéns!</p>
+      <p class="modal-next-level__subtitle text-bold text-principal">
         Você conquistou o nível {{ game.currentLevel }}
       </p>
 
-      <div class="flex justify-center gap-2 q-mt-md flex-wrap q-px-md">
+      <div class="modal-next-level__chips flex justify-center flex-wrap">
         <q-chip color="cyan" text-color="black" icon="stars">
           {{ currentScore }}
         </q-chip>
@@ -113,7 +111,7 @@ onMounted(() => {
         flat
         color="transparent"
         text-color="white"
-        btn-class="rounded-lg full-width q-pa-lg q-mb-sm"
+        btn-class="rounded-lg full-width modal-next-level__btn"
         @before-restart="onPlayAgain"
       />
       <q-btn
@@ -129,28 +127,39 @@ onMounted(() => {
   </ModalDefault>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+.modal-next-level__body {
+  padding-top: clamp(0.25rem, 1.5vw, 0.75rem);
+  padding-bottom: clamp(0.25rem, 1.5vw, 0.5rem);
+}
+
+.stars-stage {
+  min-height: clamp(4.5rem, 22dvh, 7.5rem);
+  margin-bottom: clamp(0.25rem, 2vw, 0.75rem);
+}
+
 .stars-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  min-height: 100px;
+  gap: clamp(0.35rem, 2.5vw, 1rem);
 }
 
 .star-wrapper {
+  --star-size: clamp(3.25rem, 16vw, 5.5rem);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100px;
-  height: 100px;
+  width: var(--star-size);
+  height: var(--star-size);
+  flex-shrink: 0;
 }
 
 .star-item {
-  width: 100px !important;
-  height: 100px !important;
-  max-width: 100px;
-  max-height: 100px;
+  width: var(--star-size) !important;
+  height: var(--star-size) !important;
+  max-width: var(--star-size);
+  max-height: var(--star-size);
   transform-origin: center center;
   display: block;
   opacity: 0;
@@ -160,5 +169,35 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  image-rendering: auto;
+}
+
+.modal-next-level__title {
+  font-size: clamp(1.15rem, 5vw, 2rem);
+  line-height: 1.15;
+  margin: 0 0 clamp(0.2rem, 1.5vw, 0.5rem);
+}
+
+.modal-next-level__subtitle {
+  font-size: clamp(0.95rem, 4vw, 1.35rem);
+  line-height: 1.2;
+  margin: 0 0 clamp(0.35rem, 2vw, 0.75rem);
+  padding-inline: clamp(0.25rem, 2vw, 1rem);
+}
+
+.modal-next-level__chips {
+  gap: clamp(0.25rem, 1.5vw, 0.5rem);
+  margin-top: clamp(0.15rem, 1.5vw, 0.5rem);
+}
+
+.modal-next-level__chips :deep(.q-chip) {
+  font-size: clamp(0.7rem, 2.8vw, 0.85rem);
+  height: auto;
+  min-height: 1.65rem;
+  padding: 0.2rem 0.45rem;
+}
+
+.modal-next-level__actions :deep(.modal-next-level__btn) {
+  padding-block: clamp(0.45rem, 2vw, 0.65rem);
 }
 </style>

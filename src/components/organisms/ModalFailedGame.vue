@@ -25,18 +25,20 @@ watch(
 <template>
   <ModalDefault
     v-model="modalFailedGame"
-    class-body="flex column items-center text-center q-px-lg bg-transparent"
+    class-body="flex column items-center text-center modal-failed__body"
     class-actions="flex justify-center"
     persistent
   >
     <template #default>
-      <DotLottieVue
-        autoplay
-        loop
-        src="https://lottie.host/ac583ecd-c675-4ccf-b37e-bfc772635f0f/D1Bln89bQe.lottie"
-      />
-      <p class="text-h4 text-bold text-red-8">O TEMPO ACABOU</p>
-      <p class="text-body2 text-bold text-principal">
+      <div class="modal-failed__lottie" aria-hidden="true">
+        <DotLottieVue
+          autoplay
+          loop
+          src="https://lottie.host/ac583ecd-c675-4ccf-b37e-bfc772635f0f/D1Bln89bQe.lottie"
+        />
+      </div>
+      <p class="modal-failed__title text-bold text-red-8">O TEMPO ACABOU</p>
+      <p class="modal-failed__message text-bold text-principal">
         Mas não desanime, você pode tentar novamente!
       </p>
     </template>
@@ -63,4 +65,33 @@ watch(
   </ModalDefault>
 </template>
 
-<style scoped></style>
+<style scoped lang="scss">
+.modal-failed__body {
+  padding-block: clamp(0.35rem, 2vw, 0.75rem);
+}
+
+.modal-failed__lottie {
+  width: min(12.5rem, 58vw);
+  height: clamp(6.5rem, 28dvh, 10rem);
+  flex-shrink: 0;
+  margin: 0 auto clamp(0.25rem, 2vw, 0.75rem);
+}
+
+.modal-failed__lottie :deep(canvas),
+.modal-failed__lottie :deep(svg) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.modal-failed__title {
+  font-size: clamp(1.1rem, 5vw, 2rem);
+  line-height: 1.15;
+  margin: 0 0 clamp(0.25rem, 1.5vw, 0.5rem);
+}
+
+.modal-failed__message {
+  font-size: clamp(0.8rem, 3.2vw, 0.95rem);
+  line-height: 1.35;
+  margin: 0;
+}
+</style>

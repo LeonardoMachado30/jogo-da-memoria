@@ -61,6 +61,8 @@ interface State {
   levelsConfig: Level[] | [];
   game: Game;
   flippedStatus: boolean[];
+  /** Revelação temporária por índice (evita re-render de todas as cartas no flip). */
+  revealedSlots: boolean[];
   lockBoard: boolean;
   flippedCards: FlippedCard[];
   cards: Images[];
@@ -87,6 +89,7 @@ export const useGameStore = defineStore('game', {
     initialFlip: false,
     lockBoard: false,
     flippedStatus: [],
+    revealedSlots: [],
     flippedCards: [],
     usedCardsIndices: new Set<number>(),
     availableCards: [...randomImagesEmojis],
@@ -150,7 +153,7 @@ export const useGameStore = defineStore('game', {
     isCardFaceUp: (state) => (index: number): boolean => {
       if (state.initialFlip) return true;
       if (state.flippedStatus[index]) return true;
-      return state.flippedCards.some((card) => card.index === index);
+      return state.revealedSlots[index] === true;
     },
 
     /** Permite clicar para revelar (regras de tabuleiro travado / fim de jogo). */
@@ -158,7 +161,7 @@ export const useGameStore = defineStore('game', {
       if (state.lockBoard || state.initialFlip) return false;
       if (state.showModalEnd || state.modalFailedGame) return false;
       if (state.flippedStatus[index]) return false;
-      if (state.flippedCards.some((card) => card.index === index)) return false;
+      if (state.revealedSlots[index]) return false;
       if (state.flippedCards.length >= 2) return false;
       return index >= 0 && index < state.cards.length;
     },
@@ -205,6 +208,7 @@ export const useGameStore = defineStore('game', {
       const gameCards = this.shuffleArray(cards);
       this.cards = gameCards;
       this.flippedStatus = Array(gameCards.length).fill(false);
+      this.revealedSlots = Array(gameCards.length).fill(false);
       this.flippedCards = [];
 
       return gameCards;
@@ -222,6 +226,7 @@ export const useGameStore = defineStore('game', {
       this.currentScore = 0;
       this.attemptCounter = 0;
       this.flippedCards = [];
+      this.revealedSlots = [];
       this.initialFlip = false;
       this.lockBoard = true;
       this.isGameInitialized = false;
@@ -256,6 +261,7 @@ export const useGameStore = defineStore('game', {
       this.currentScore = 0;
       this.attemptCounter = 0;
       this.flippedCards = [];
+      this.revealedSlots = [];
       this.flippedStatus = [];
       this.cards = [];
       this.initialFlip = false;
@@ -303,6 +309,7 @@ export const useGameStore = defineStore('game', {
 
       this.lockBoard = true;
       this.flippedCards = [];
+      this.clearRevealedSlots();
       this.modalFailedGame = true;
     },
 
@@ -317,7 +324,10 @@ export const useGameStore = defineStore('game', {
       this.game.acumulativeAccepts = 0;
       this.flippedStatus[first.index] = true;
       this.flippedStatus[second.index] = true;
+      this.revealedSlots[first.index] = false;
+      this.revealedSlots[second.index] = false;
       this.flippedCards = [];
+      this.revealedSlots = [];
       this.lockBoard = false;
       this.incrementScore(formattedTime.value);
       useAudio().audioPair();
@@ -329,10 +339,24 @@ export const useGameStore = defineStore('game', {
       }
     },
 
+    clearRevealedSlots(indices?: number[]): void {
+      const targets =
+        indices ??
+        this.flippedCards.map((card) => card.index).filter((i) => i >= 0);
+
+      for (const index of targets) {
+        if (index < this.revealedSlots.length) {
+          this.revealedSlots[index] = false;
+        }
+      }
+    },
+
     markPairMismatched(): void {
       this.game.acumulativeAccepts = this.game.acumulativeAccepts + 1;
+      const mismatchIndices = this.flippedCards.map((card) => card.index);
 
       setTimeout(() => {
+        this.clearRevealedSlots(mismatchIndices);
         this.flippedCards = [];
         this.lockBoard = false;
       }, MISMATCH_HIDE_DELAY_MS);
@@ -457,6 +481,7 @@ export const useGameStore = defineStore('game', {
     onFlip({ index, alt, id }: FlippedCard): void {
       if (!this.canFlipCard(index)) return;
 
+      this.revealedSlots[index] = true;
       this.flippedCards.push({ index, alt, id });
 
       if (this.flippedCards.length < 2) return;

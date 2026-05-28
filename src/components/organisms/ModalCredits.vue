@@ -5,8 +5,13 @@ const modelValue = defineModel({ default: false });
 </script>
 
 <template>
-  <ModalDefault v-model="modelValue" title="Créditos" icon="copyright">
-    <p class="text-center text-bold">Audio e efeitos sonoros</p>
+  <ModalDefault
+    v-model="modelValue"
+    title="Créditos"
+    icon="copyright"
+    class-body="modal-credits__body"
+  >
+    <p class="text-center text-bold modal-credits__heading">Audio e efeitos sonoros</p>
 
     <p>Perdeu o jogo: https://freesound.org/people/themusicalnomad/sounds/253886/</p>
     <p>hover botões: https://freesound.org/people/deathbyfairydust/sounds/658431/</p>
@@ -25,4 +30,22 @@ const modelValue = defineModel({ default: false });
   </ModalDefault>
 </template>
 
-<style scoped></style>
+<style scoped lang="scss">
+.modal-credits__body {
+  font-size: clamp(0.68rem, 2.7vw, 0.875rem);
+  line-height: 1.35;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.modal-credits__body p,
+.modal-credits__body a {
+  margin: 0 0 clamp(0.2rem, 1.2vw, 0.4rem);
+  word-break: break-word;
+}
+
+.modal-credits__heading {
+  font-size: clamp(0.8rem, 3.2vw, 1rem);
+  margin-bottom: clamp(0.35rem, 2vw, 0.65rem) !important;
+}
+</style>

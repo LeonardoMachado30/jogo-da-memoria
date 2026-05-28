@@ -214,6 +214,7 @@ watch(
   align-items: center;
   justify-content: center;
   width: 100%;
+  contain: layout style;
 }
 
 .--flex {

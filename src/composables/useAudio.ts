@@ -56,8 +56,10 @@ function audioCreate(audioPath: string, autoPlay = true): HTMLAudioElement {
   }
 
   if (autoPlay) {
-    audio.currentTime = 0;
-    audio.play().catch((err) => {
+    if (audio.paused || audio.ended) {
+      audio.currentTime = 0;
+    }
+    void audio.play().catch((err) => {
       console.warn('Audio play blocked:', err);
     });
   }

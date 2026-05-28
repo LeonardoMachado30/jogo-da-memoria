@@ -1,9 +1,27 @@
 import gsap from 'gsap';
+import { shouldUseLiteEffects } from 'src/utils/performance';
 
 export function distributeCardsAnimation(
   { card, index, containerRect, centerX, centerY }: any,
   callbackAnimation: () => void,
 ) {
+  if (shouldUseLiteEffects()) {
+    gsap.fromTo(
+      card,
+      { opacity: 0, scale: 0.92 },
+      {
+        opacity: 1,
+        scale: 1,
+        duration: 0.28,
+        delay: Math.min(index * 0.015, 0.35),
+        ease: 'power2.out',
+        clearProps: 'scale',
+        onComplete: callbackAnimation,
+      },
+    );
+    return;
+  }
+
   const cardRect = card.getBoundingClientRect();
   const cardCenterX = cardRect.left - containerRect.left + cardRect.width / 2;
 
@@ -28,9 +46,7 @@ export function distributeCardsAnimation(
       duration: 0.8,
       delay: index * 0.08,
       ease: 'back.out(1.2)',
-      onComplete: () => {
-        callbackAnimation();
-      },
+      onComplete: callbackAnimation,
     },
   );
 }

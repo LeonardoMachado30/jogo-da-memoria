@@ -70,6 +70,7 @@ import { computed, ref, watch, nextTick, onMounted } from 'vue';
 import ModalSettings from 'components/organisms/ModalSettings.vue';
 import ModalTutorial from 'components/organisms/ModalTutorial.vue';
 import gsap from 'gsap';
+import { shouldUseLiteEffects } from 'src/utils/performance';
 
 const route = useRoute();
 const router = useRouter();
@@ -89,15 +90,30 @@ const backgroundRef = ref<HTMLElement | null>(null);
 // Função para animar o background usando GSAP
 function animateBackground(isHomeValue: boolean) {
   if (!backgroundRef.value) return;
+
+  const lite = shouldUseLiteEffects();
+  const inGame = !isHomeValue;
+
   gsap.to(backgroundRef.value, {
-    scale: isHomeValue ? 1 : 30,
-    filter: isHomeValue ? 'blur(1px) brightness(1)' : 'blur(8px) brightness(0.7)',
-    duration: 1.6,
-    ease: 'power3.inOut',
-    borderRadius: isHomeValue ? '0%' : '30%',
-    // Metamórfica: arredonda e distorce um pouco ao sair da home
-    boxShadow: isHomeValue ? '0 0 0px 0px rgba(0,0,0,0)' : '0 0 120px 40px rgba(0,0,0,0.25)',
+    scale: isHomeValue ? 1 : lite ? 1.15 : 30,
+    filter: isHomeValue
+      ? 'blur(1px) brightness(1)'
+      : lite
+        ? 'blur(2px) brightness(0.92)'
+        : 'blur(8px) brightness(0.7)',
+    duration: lite ? 0.6 : 1.6,
+    ease: lite ? 'power2.out' : 'power3.inOut',
+    borderRadius: isHomeValue ? '0%' : lite ? '0%' : '30%',
+    boxShadow:
+      isHomeValue || lite
+        ? '0 0 0px 0px rgba(0,0,0,0)'
+        : '0 0 120px 40px rgba(0,0,0,0.25)',
+    force3D: inGame && lite,
   });
+
+  if (lite && inGame) {
+    backgroundRef.value.style.willChange = 'auto';
+  }
 }
 
 // Observa mudanças de rota para animar a transição do background
@@ -151,7 +167,7 @@ const logout = async () => {
   background-size: cover;
   background-repeat: no-repeat;
   background-image: url(/background/tela-inicial.png);
-  will-change: transform, filter, border-radius, box-shadow;
+  will-change: auto;
   /* O scale será controlado pelo GSAP */
   /* Transições suaves e metamórficas via GSAP */
 }

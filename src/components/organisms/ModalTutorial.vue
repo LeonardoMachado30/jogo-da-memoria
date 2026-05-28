@@ -26,8 +26,7 @@ watch(modelValue, () => {
       animated
       control-color="black"
       arrows
-      height="300px"
-      class="full-width q-px-md"
+      class="modal-tutorial__carousel full-width"
     >
       <q-carousel-slide name="1" class="column no-wrap flex-center">
         <q-card-section class="q-pa-none">
@@ -62,4 +61,22 @@ watch(modelValue, () => {
   </ModalDefault>
 </template>
 
-<style scoped></style>
+<style scoped lang="scss">
+.modal-tutorial__carousel {
+  height: clamp(11rem, 42dvh, 18.75rem);
+}
+
+.modal-tutorial__carousel :deep(.q-carousel__slide) {
+  padding: clamp(0.35rem, 2vw, 0.75rem);
+}
+
+.modal-tutorial__carousel :deep(p),
+.modal-tutorial__carousel :deep(li) {
+  font-size: clamp(0.78rem, 3.1vw, 1rem);
+  line-height: 1.35;
+}
+
+.modal-tutorial__carousel :deep(.text-h6) {
+  font-size: clamp(0.9rem, 3.6vw, 1.15rem);
+}
+</style>
